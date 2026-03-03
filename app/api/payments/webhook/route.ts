@@ -105,19 +105,20 @@ export async function POST(req: NextRequest) {
       // ── Premium subscription ────────────────────────────────────────────
       if (session.subscription) {
         const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+        const periodEnd = new Date((sub.items.data[0]?.current_period_end ?? 0) * 1000);
         await prisma.subscription.upsert({
           where: { userId },
           update: {
             plan: "PREMIUM",
             stripeSubId: sub.id,
-            currentPeriodEnd: new Date((sub as unknown as { current_period_end: number }).current_period_end * 1000),
+            currentPeriodEnd: periodEnd,
           },
           create: {
             userId,
             plan: "PREMIUM",
             stripeCustomerId: session.customer as string,
             stripeSubId: sub.id,
-            currentPeriodEnd: new Date((sub as unknown as { current_period_end: number }).current_period_end * 1000),
+            currentPeriodEnd: periodEnd,
           },
         });
       }
@@ -142,7 +143,7 @@ export async function POST(req: NextRequest) {
       await prisma.subscription.updateMany({
         where: { stripeSubId: subId },
         data: {
-          currentPeriodEnd: new Date((stripeSub as unknown as { current_period_end: number }).current_period_end * 1000),
+          currentPeriodEnd: new Date((stripeSub.items.data[0]?.current_period_end ?? 0) * 1000),
         },
       });
       break;

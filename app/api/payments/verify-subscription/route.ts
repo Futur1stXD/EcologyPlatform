@@ -42,7 +42,10 @@ export async function POST(req: NextRequest) {
     }
 
     const sub = await stripe.subscriptions.retrieve(stripeSession.subscription as string);
-    const periodEnd = new Date((sub as unknown as { current_period_end: number }).current_period_end * 1000);
+    const periodEnd = new Date((sub.items.data[0]?.current_period_end ?? 0) * 1000);
+    if (isNaN(periodEnd.getTime())) {
+      return NextResponse.json({ error: "Could not determine subscription period end" }, { status: 502 });
+    }
 
     await prisma.subscription.upsert({
       where: { userId },
