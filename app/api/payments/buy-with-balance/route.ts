@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { rewardPurchase } from "@/lib/gamification";
+import { rewardPurchase, awardEcoPoints, calcEcoPointsForPurchase } from "@/lib/gamification";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { productId, useCashback } = await req.json() as { productId: string; useCashback?: boolean };
+  const { productId, useCashback, useEcoPoints } = await req.json() as {
+    productId: string;
+    useCashback?: boolean;
+    useEcoPoints?: boolean;
+  };
   if (!productId) return NextResponse.json({ error: "productId required" }, { status: 400 });
 
   const [product, user] = await Promise.all([
@@ -17,7 +21,7 @@ export async function POST(req: NextRequest) {
     }),
     prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { balance: true, cashbackBalance: true },
+      select: { balance: true, cashbackBalance: true, ecoPoints: true },
     }),
   ]);
 
@@ -30,15 +34,22 @@ export async function POST(req: NextRequest) {
     ? Math.min(user.cashbackBalance, product.price)
     : 0;
   const cashbackAppliedRounded = Math.round(cashbackApplied * 100) / 100;
+  const priceAfterCashback = Math.round((product.price - cashbackAppliedRounded) * 100) / 100;
 
-  const effectivePrice = Math.round((product.price - cashbackAppliedRounded) * 100) / 100;
+  // Calculate eco-points discount applied (1 pt = 1 ₸)
+  const ecoPointsApplied = useEcoPoints && user && user.ecoPoints > 0
+    ? Math.min(user.ecoPoints, priceAfterCashback)
+    : 0;
+  const ecoPointsAppliedRounded = Math.round(ecoPointsApplied);
+
+  const effectivePrice = Math.round((priceAfterCashback - ecoPointsAppliedRounded) * 100) / 100;
 
   if (!user || user.balance < effectivePrice)
     return NextResponse.json({ error: "Insufficient balance" }, { status: 402 });
 
   const cashbackEarned = Math.round(product.price * 0.05 * 100) / 100;
 
-  // Atomic transaction: deduct balance, optionally spend cashback, create order, credit new cashback
+  // Atomic transaction: deduct balance, optionally spend cashback/eco-points, create order, credit new cashback
   const order = await prisma.$transaction(async (tx) => {
     const userUpdate: Record<string, unknown> = {
       balance: { decrement: effectivePrice },
@@ -50,8 +61,15 @@ export async function POST(req: NextRequest) {
         increment: cashbackEarned - cashbackAppliedRounded,
       };
     }
+    if (ecoPointsAppliedRounded > 0) {
+      userUpdate.ecoPoints = { decrement: ecoPointsAppliedRounded };
+    }
 
     await tx.user.update({ where: { id: session.user.id }, data: userUpdate });
+
+    const descParts: string[] = [`Purchase: ${product.title}`];
+    if (cashbackAppliedRounded > 0) descParts.push(`${cashbackAppliedRounded.toLocaleString("ru-KZ")} ₸ cashback applied`);
+    if (ecoPointsAppliedRounded > 0) descParts.push(`${ecoPointsAppliedRounded} eco-coins applied`);
 
     const o = await tx.order.create({
       data: {
@@ -69,9 +87,7 @@ export async function POST(req: NextRequest) {
         userId: session.user.id,
         amount: -effectivePrice,
         type: "PURCHASE",
-        description: cashbackAppliedRounded > 0
-          ? `Purchase: ${product.title} (${cashbackAppliedRounded.toLocaleString("ru-KZ")} ₸ cashback applied)`
-          : `Purchase: ${product.title}`,
+        description: descParts.join(" · "),
         orderId: o.id,
       },
     });
@@ -84,6 +100,19 @@ export async function POST(req: NextRequest) {
           amount: -cashbackAppliedRounded,
           type: "CASHBACK_SPEND",
           description: `Cashback spent on: ${product.title}`,
+          orderId: o.id,
+        },
+      });
+    }
+
+    // Record eco-coins spend
+    if (ecoPointsAppliedRounded > 0) {
+      await tx.balanceTransaction.create({
+        data: {
+          userId: session.user.id,
+          amount: -ecoPointsAppliedRounded,
+          type: "ECO_SPEND",
+          description: `Eco-coins spent on: ${product.title}`,
           orderId: o.id,
         },
       });
@@ -103,8 +132,20 @@ export async function POST(req: NextRequest) {
     return o;
   });
 
+  // Award purchase-count badges
   const ordersCount = await prisma.order.count({ where: { userId: session.user.id } });
   await rewardPurchase(session.user.id, ordersCount);
 
-  return NextResponse.json({ ok: true, orderId: order.id, cashback: cashbackEarned, cashbackApplied: cashbackAppliedRounded });
+  // Award eco-points for this purchase (1 coin per 10 ₸)
+  const ecoPointsEarned = calcEcoPointsForPurchase(product.price);
+  await awardEcoPoints(session.user.id, ecoPointsEarned);
+
+  return NextResponse.json({
+    ok: true,
+    orderId: order.id,
+    cashback: cashbackEarned,
+    cashbackApplied: cashbackAppliedRounded,
+    ecoPointsApplied: ecoPointsAppliedRounded,
+    ecoPointsEarned,
+  });
 }

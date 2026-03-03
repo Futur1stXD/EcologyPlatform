@@ -98,8 +98,10 @@ export async function POST(req: NextRequest) {
         ]);
 
         const ordersCount = await prisma.order.count({ where: { userId } });
-        const { rewardPurchase } = await import("@/lib/gamification");
+        const { rewardPurchase, awardEcoPoints, calcEcoPointsForPurchase } = await import("@/lib/gamification");
         await rewardPurchase(userId, ordersCount);
+        const ecoPointsEarned = calcEcoPointsForPurchase(product.price);
+        await awardEcoPoints(userId, ecoPointsEarned);
         break;
       }
 
