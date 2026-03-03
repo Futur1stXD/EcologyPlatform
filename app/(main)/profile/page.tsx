@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/Button";
 import { EcoScoreBadge } from "@/components/products/EcoScoreBadge";
 import { BalanceTopupWidget } from "@/components/profile/BalanceTopupWidget";
 
+// Always read fresh data — subscription/balance change after Stripe redirects
+export const dynamic = "force-dynamic";
+
 const FREE_PLAN_LIMIT = 10;
 
 export default async function ProfilePage() {
@@ -93,6 +96,11 @@ export default async function ProfilePage() {
                 ) : (
                   <Badge variant="outline">Free plan</Badge>
                 )}
+                {isPremium && user.subscription?.currentPeriodEnd && (
+                  <span className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-full px-2.5 py-0.5">
+                    До {formatDate(user.subscription.currentPeriodEnd)}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -112,10 +120,10 @@ export default async function ProfilePage() {
                 ⭐ Premium plan
               </p>
               <p className="text-xs text-[#6b6b6b]">
-                Unlimited listings ·{" "}
-                {user.subscription?.currentPeriodEnd
-                  ? `Valid until ${formatDate(user.subscription.currentPeriodEnd)}`
-                  : "Active"}
+                Unlimited listings
+                {user.subscription?.currentPeriodEnd && (
+                  <> · Действует до {formatDate(user.subscription.currentPeriodEnd)}</>
+                )}
               </p>
             </div>
           ) : (
