@@ -31,7 +31,7 @@ export default async function ChatListPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {rooms.map((room) => {
+          {rooms.map((room: typeof rooms[0]) => {
             const other = room.buyerId === session.user.id ? room.seller : room.buyer;
             const lastMsg = room.messages[0];
 

@@ -65,7 +65,7 @@ export default async function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e5e5e5]">
-                {pendingList.map((p) => (
+                {pendingList.map((p: typeof pendingList[0]) => (
                   <tr key={p.id}>
                     <td className="px-4 py-3 font-medium text-[#0a0a0a] max-w-[200px] truncate">{p.title}</td>
                     <td className="px-4 py-3 text-[#6b6b6b]">{p.seller.name}</td>

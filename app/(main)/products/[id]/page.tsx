@@ -37,12 +37,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   const avgRating =
     product.reviews.length > 0
-      ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
+      ? product.reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / product.reviews.length
       : 0;
 
   const isPremium = product.seller.subscription?.plan === "PREMIUM";
   const canReview = session && session.user.id !== product.sellerId;
-  const hasReviewed = product.reviews.some((r) => r.userId === session?.user?.id);
+  const hasReviewed = product.reviews.some((r: { userId: string }) => r.userId === session?.user?.id);
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10">
@@ -58,7 +58,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           </div>
           {product.images.length > 1 && (
             <div className="grid grid-cols-4 gap-2">
-              {product.images.slice(1).map((img, i) => (
+              {product.images.slice(1).map((img: string, i: number) => (
                 <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5]">
                   <Image src={img} alt={`${product.title} ${i + 2}`} fill className="object-cover" />
                 </div>
@@ -111,7 +111,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
               <Package size={14} className="mt-0.5" />
               Материалы:{" "}
               <div className="flex flex-wrap gap-1">
-                {product.materials.map((m) => (
+                {product.materials.map((m: string) => (
                   <Badge key={m} variant="outline">{m}</Badge>
                 ))}
               </div>
@@ -159,7 +159,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <p className="text-sm text-[#6b6b6b]">Отзывов пока нет. Будьте первым!</p>
         ) : (
           <div className="space-y-5">
-            {product.reviews.map((review) => (
+            {product.reviews.map((review: { id: string; rating: number; comment: string; createdAt: Date; userId: string; user: { id: string; name: string | null; image: string | null } }) => (
               <div key={review.id} className="border border-[#e5e5e5] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">

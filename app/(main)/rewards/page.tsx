@@ -33,7 +33,7 @@ export default async function RewardsPage() {
     : 100;
 
   const ALL_BADGES = ["FIRST_PURCHASE", "TEN_PURCHASES", "GREEN_BUYER", "ECO_HERO", "HUNDRED_POINTS"];
-  const earnedBadges = new Set(user.badges.map((b) => b.badge));
+  const earnedBadges = new Set(user.badges.map((b: { badge: string }) => b.badge));
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
@@ -96,7 +96,7 @@ export default async function RewardsPage() {
           {ALL_BADGES.map((badge) => {
             const info = getBadgeInfo(badge as Parameters<typeof getBadgeInfo>[0]);
             const earned = earnedBadges.has(badge as Parameters<typeof getBadgeInfo>[0]);
-            const awardedAt = user.badges.find((b) => b.badge === badge)?.awardedAt;
+            const awardedAt = user.badges.find((b: { badge: string; awardedAt: Date }) => b.badge === badge)?.awardedAt;
 
             return (
               <div

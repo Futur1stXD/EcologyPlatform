@@ -18,7 +18,7 @@ export async function GET() {
 
   if (!user) return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
 
-  const badges = user.badges.map((b) => ({
+  const badges = user.badges.map((b: { badge: string; awardedAt: Date }) => ({
     ...b,
     info: getBadgeInfo(b.badge),
   }));

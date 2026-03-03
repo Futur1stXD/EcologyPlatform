@@ -15,7 +15,7 @@ import { EcoScoreBadge } from "@/components/products/EcoScoreBadge";
 const schema = z.object({
   title: z.string().min(3, "Минимум 3 символа"),
   description: z.string().min(10, "Минимум 10 символов"),
-  price: z.coerce.number().positive("Введите корректную цену"),
+  price: z.number().positive("Введите корректную цену"),
   category: z.string().min(1, "Выберите категорию"),
   origin: z.string().min(2, "Укажите происхождение"),
   materialsRaw: z.string().min(2, "Укажите материалы (через запятую)"),
@@ -107,7 +107,7 @@ export default function NewProductPage() {
         <Textarea id="description" label="Описание *" placeholder="Расскажите о товаре, его экологических характеристиках..." error={errors.description?.message} {...register("description")} />
 
         <div className="grid grid-cols-2 gap-4">
-          <Input id="price" type="number" label="Цена (₽) *" placeholder="0" error={errors.price?.message} {...register("price")} />
+          <Input id="price" type="number" label="Цена (₽) *" placeholder="0" error={errors.price?.message} {...register("price", { valueAsNumber: true })} />
           <Select id="category" label="Категория *" options={CATEGORIES} error={errors.category?.message} {...register("category")} />
         </div>
 
