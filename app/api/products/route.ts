@@ -79,6 +79,9 @@ const FREE_PLAN_LIMIT = 10;
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (session.user.role === "USER") {
+    return NextResponse.json({ error: "Only sellers can publish products." }, { status: 403 });
+  }
 
   try {
     const body = await req.json();

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, use } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -61,6 +62,14 @@ const ECO_ATTRS = [
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.role === "USER") {
+      router.replace("/products");
+    }
+  }, [status, session, router]);
+
   const [serverError, setServerError] = useState("");
   const [previewScore, setPreviewScore] = useState<number | null>(null);
   const [existingImages, setExistingImages] = useState<string[]>([]);
