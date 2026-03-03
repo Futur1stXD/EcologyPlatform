@@ -30,7 +30,9 @@ export async function POST(request: NextRequest) {
   const urls: string[] = [];
 
   for (const file of files) {
-    if (!file.type.startsWith("image/")) continue;
+    const isImage = file.type.startsWith("image/");
+    const isPdf = file.type === "application/pdf";
+    if (!isImage && !isPdf) continue;
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);

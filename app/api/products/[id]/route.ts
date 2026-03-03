@@ -54,7 +54,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     "origin", "ecoScore", "status", "isFeatured", "packagingType",
     "hasRecycling", "hasOrganicCert", "isFairTrade", "isVegan",
     "isLocalDelivery", "hasCarbonNeutral", "hasEnergyEfficiency",
-    "hasZeroWaste", "isDurable",
+    "hasZeroWaste", "isDurable", "certificateUrl",
   ];
   for (const key of allowed) {
     if (key in body) updateData[key] = body[key];

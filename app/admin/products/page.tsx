@@ -11,7 +11,15 @@ export default async function AdminProductsPage({ searchParams }: Props) {
 
   const products = await prisma.product.findMany({
     where: status ? { status: status as "PENDING" | "APPROVED" | "REJECTED" } : undefined,
-    include: {
+    select: {
+      id: true,
+      title: true,
+      price: true,
+      category: true,
+      ecoScore: true,
+      status: true,
+      createdAt: true,
+      certificateUrl: true,
       seller: { select: { name: true, email: true } },
       _count: { select: { reviews: true } },
     },

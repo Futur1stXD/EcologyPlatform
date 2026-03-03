@@ -22,6 +22,7 @@ const productSchema = z.object({
   hasEnergyEfficiency: z.boolean().optional().default(false),
   hasZeroWaste: z.boolean().optional().default(false),
   isDurable: z.boolean().optional().default(false),
+  certificateUrl: z.string().optional().nullable(),
 });
 
 // GET /api/products — list with filtering

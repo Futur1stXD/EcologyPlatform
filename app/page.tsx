@@ -29,7 +29,7 @@ const HOW_IT_WORKS = [
   {
     step: "03",
     title: "Buy securely",
-    desc: "Pay via Stripe. After purchase you earn Eco-points and a badge — every order makes a difference.",
+    desc: "Pay via Stripe or your balance. Get 5% cashback on every purchase and unlock achievement badges.",
     icon: <CheckCircle size={24} className="text-green-600" />,
   },
 ];
@@ -38,7 +38,7 @@ const FEATURES = [
   { icon: <Leaf size={20} className="text-green-600" />,    title: "Eco-Score 1–100",         desc: "The algorithm considers materials, packaging, origin, certifications (organic, fair trade, carbon neutral) and more." },
   { icon: <ShieldCheck size={20} />,                        title: "Product moderation",       desc: "Every product is reviewed by an admin before going live — no greenwashing." },
   { icon: <Star size={20} />,                               title: "Verified reviews",          desc: "Reviews only from real buyers. Direct chat with sellers for any questions." },
-  { icon: <Zap size={20} />,                                title: "Eco rewards",               desc: "Earn points on every purchase. Unlock badges: Green Buyer, Eco-Hero and more." },
+  { icon: <Zap size={20} />,                                title: "Cashback & badges",          desc: "Earn 5% cashback on every purchase. Unlock badges: Green Buyer, Eco-Hero and more." },
   { icon: <Globe size={20} />,                              title: "Local producers",           desc: "Support local makers — lower carbon footprint from shipping." },
   { icon: <TrendingUp size={20} />,                         title: "Premium for sellers",       desc: "Priority listing, extended analytics and a Premium seller badge." },
 ];
@@ -175,7 +175,7 @@ export default function HomePage() {
                 Transparent ratings, verified sellers and a rewards system make conscious shopping enjoyable.
               </p>
               <div className="space-y-3 mb-8">
-                {["Eco-Score for every product", "Verified sellers only", "Secure payment via Stripe", "Eco-points on every purchase"].map((item) => (
+                {["Eco-Score for every product", "Verified sellers only", "Secure payment via Stripe", "5% cashback on every purchase"].map((item) => (
                   <div key={item} className="flex items-center gap-2">
                     <CheckCircle size={16} className="text-green-600 shrink-0" />
                     <span className="text-sm text-[#0a0a0a]">{item}</span>

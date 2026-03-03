@@ -14,6 +14,7 @@ interface Product {
   ecoScore: number;
   status: string;
   createdAt: Date;
+  certificateUrl?: string | null;
   seller: { name: string | null; email: string };
   _count: { reviews: number };
 }
@@ -77,6 +78,7 @@ export function AdminProductsTable({ products: initial }: AdminProductsTableProp
             <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Price</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Status</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Date</th>
+            <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Cert</th>
             <th className="text-right px-4 py-3 text-xs font-medium text-[#6b6b6b]">Actions</th>
           </tr>
         </thead>
@@ -100,6 +102,21 @@ export function AdminProductsTable({ products: initial }: AdminProductsTableProp
                 </Badge>
               </td>
               <td className="px-4 py-3 text-xs text-[#6b6b6b]">{formatDate(p.createdAt)}</td>
+              <td className="px-4 py-3">
+                {p.certificateUrl ? (
+                  <a
+                    href={p.certificateUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-green-600 hover:underline font-medium"
+                    title="View certificate"
+                  >
+                    📄 View
+                  </a>
+                ) : (
+                  <span className="text-xs text-[#a3a3a3]">—</span>
+                )}
+              </td>
               <td className="px-4 py-3">
                 <div className="flex items-center justify-end gap-1.5">
                   {p.status === "PENDING" && (

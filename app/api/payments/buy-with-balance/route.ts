@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { productId, useCashback, useEcoPoints } = await req.json() as { productId: string; useCashback?: boolean; useEcoPoints?: boolean };
+  const { productId, useCashback } = await req.json() as { productId: string; useCashback?: boolean };
   if (!productId) return NextResponse.json({ error: "productId required" }, { status: 400 });
 
   const [product, user] = await Promise.all([
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     }),
     prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { balance: true, cashbackBalance: true, ecoPoints: true },
+      select: { balance: true, cashbackBalance: true },
     }),
   ]);
 
@@ -31,14 +31,7 @@ export async function POST(req: NextRequest) {
     : 0;
   const cashbackAppliedRounded = Math.round(cashbackApplied * 100) / 100;
 
-  // Calculate eco-points discount (1 point = 1 ₸), applied after cashback
-  const priceAfterCashback = Math.round((product.price - cashbackAppliedRounded) * 100) / 100;
-  const ecoPointsApplied = useEcoPoints && user && user.ecoPoints > 0
-    ? Math.min(user.ecoPoints, priceAfterCashback)
-    : 0;
-  const ecoPointsAppliedRounded = Math.round(ecoPointsApplied * 100) / 100;
-
-  const effectivePrice = Math.round((priceAfterCashback - ecoPointsAppliedRounded) * 100) / 100;
+  const effectivePrice = Math.round((product.price - cashbackAppliedRounded) * 100) / 100;
 
   if (!user || user.balance < effectivePrice)
     return NextResponse.json({ error: "Insufficient balance" }, { status: 402 });
@@ -56,9 +49,6 @@ export async function POST(req: NextRequest) {
       userUpdate.cashbackBalance = {
         increment: cashbackEarned - cashbackAppliedRounded,
       };
-    }
-    if (ecoPointsAppliedRounded > 0) {
-      userUpdate.ecoPoints = { decrement: Math.round(ecoPointsAppliedRounded) };
     }
 
     await tx.user.update({ where: { id: session.user.id }, data: userUpdate });
@@ -99,19 +89,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Record eco-points spend
-    if (ecoPointsAppliedRounded > 0) {
-      await tx.balanceTransaction.create({
-        data: {
-          userId: session.user.id,
-          amount: -ecoPointsAppliedRounded,
-          type: "ECO_SPEND",
-          description: `${Math.round(ecoPointsAppliedRounded)} eco-pts spent on: ${product.title}`,
-          orderId: o.id,
-        },
-      });
-    }
-
     // Credit new cashback (5%) to cashbackBalance
     await tx.balanceTransaction.create({
       data: {
@@ -129,5 +106,5 @@ export async function POST(req: NextRequest) {
   const ordersCount = await prisma.order.count({ where: { userId: session.user.id } });
   await rewardPurchase(session.user.id, ordersCount);
 
-  return NextResponse.json({ ok: true, orderId: order.id, cashback: cashbackEarned, cashbackApplied: cashbackAppliedRounded, ecoPointsApplied: ecoPointsAppliedRounded });
+  return NextResponse.json({ ok: true, orderId: order.id, cashback: cashbackEarned, cashbackApplied: cashbackAppliedRounded });
 }

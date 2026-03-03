@@ -9,7 +9,6 @@ export interface UserWithRelations {
   image: string | null;
   role: Role;
   bio: string | null;
-  ecoPoints: number;
   createdAt: Date;
   subscription: SubscriptionSummary | null;
   badges: BadgeSummary[];

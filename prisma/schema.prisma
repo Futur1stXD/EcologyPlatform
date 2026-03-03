@@ -126,6 +126,7 @@ model Product {
   status             ProductStatus @default(PENDING)
   isFeatured         Boolean       @default(false)
   sellerId           String
+  certificateUrl     String?
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 

@@ -107,8 +107,8 @@ export default async function ProfilePage() {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold text-[#0a0a0a]">{user.ecoPoints}</p>
-            <p className="text-xs text-[#6b6b6b]">eco-points</p>
+            <p className="text-2xl font-bold text-[#0a0a0a]">{user.cashbackBalance.toLocaleString("ru-KZ")} ₸</p>
+            <p className="text-xs text-[#6b6b6b]">cashback balance</p>
           </div>
         </div>
 

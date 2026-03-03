@@ -76,6 +76,8 @@ export default function NewProductPage() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [certFile, setCertFile] = useState<File | null>(null);
+  const certInputRef = useRef<HTMLInputElement>(null);
   const [listingStats, setListingStats] = useState<{
     productCount: number;
     plan: string;
@@ -170,7 +172,16 @@ export default function NewProductPage() {
       hasZeroWaste: !!data.hasZeroWaste,
       isDurable: !!data.isDurable,
     });
-
+    let certificateUrl: string | null = null;
+    if (certFile) {
+      const fd = new FormData();
+      fd.append("files", certFile);
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
+      if (uploadRes.ok) {
+        const { urls } = await uploadRes.json() as { urls: string[] };
+        certificateUrl = urls[0] ?? null;
+      }
+    }
     const res = await fetch("/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -291,10 +302,38 @@ export default function NewProductPage() {
           )}
         </div>
 
+        {/* Certificate upload */}
+        <div>
+          <p className="text-sm font-medium text-[#0a0a0a] mb-1">Eco certificate <span className="text-[#a3a3a3] font-normal">(optional)</span></p>
+          <p className="text-xs text-[#6b6b6b] mb-2">Upload an organic, fair-trade or other eco certification. Admins will review it during moderation.</p>
+          <button
+            type="button"
+            onClick={() => certInputRef.current?.click()}
+            className="w-full rounded-xl border-2 border-dashed border-[#e5e5e5] p-5 flex flex-col items-center gap-2 hover:border-green-400 hover:bg-green-50/40 transition-colors"
+          >
+            <span className="text-2xl">📄</span>
+            <span className="text-sm font-medium text-[#0a0a0a]">Click to upload certificate</span>
+            <span className="text-xs text-[#6b6b6b]">PDF or image (JPG, PNG)</span>
+          </button>
+          <input
+            ref={certInputRef}
+            type="file"
+            accept="image/*,application/pdf"
+            className="hidden"
+            onChange={(e) => setCertFile(e.target.files?.[0] ?? null)}
+          />
+          {certFile && (
+            <div className="mt-2 flex items-center gap-2 text-sm text-green-700">
+              <span>✓</span>
+              <span className="truncate">{certFile.name}</span>
+              <button type="button" onClick={() => setCertFile(null)} className="ml-auto text-[#a3a3a3] hover:text-red-500">✕</button>
+            </div>
+          )}
+        </div>
+
         {/* Eco attributes */}
         <div className="border border-[#e5e5e5] rounded-xl p-5">
-          <p className="text-sm font-medium text-[#0a0a0a] mb-1">Eco attributes</p>
-          <p className="text-xs text-[#6b6b6b] mb-4">Select all that apply — each one raises the Eco-Score</p>
+          <p className="text-sm font-medium text-[#0a0a0a] mb-1">Eco attributes</p>          <p className="text-xs text-[#6b6b6b] mb-4">Select all that apply — each one raises the Eco-Score</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {ECO_ATTRS.map((attr) => {

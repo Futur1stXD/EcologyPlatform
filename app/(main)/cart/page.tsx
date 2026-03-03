@@ -18,9 +18,7 @@ export default function CartPage() {
   const [loadingBalance, setLoadingBalance] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
   const [cashbackBalance, setCashbackBalance] = useState<number>(0);
-  const [ecoPoints, setEcoPoints] = useState<number>(0);
   const [useCashback, setUseCashback] = useState(false);
-  const [useEcoPoints, setUseEcoPoints] = useState(false);
   const [error, setError] = useState("");
   const [verified, setVerified] = useState(false);
   const searchParams = useSearchParams();
@@ -35,7 +33,6 @@ export default function CartPage() {
       .then((d) => {
         if (typeof d.balance === "number") setBalance(d.balance);
         if (typeof d.cashbackBalance === "number") setCashbackBalance(d.cashbackBalance);
-        if (typeof d.ecoPoints === "number") setEcoPoints(d.ecoPoints);
       })
       .catch(() => {});
   }, [session]);
@@ -94,10 +91,9 @@ export default function CartPage() {
         body: JSON.stringify({
           items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
           useCashback,
-          useEcoPoints,
         }),
       });
-      const data = await res.json() as { orderId?: string; cashback?: number; cashbackApplied?: number; ecoPointsApplied?: number; error?: string };
+      const data = await res.json() as { orderId?: string; cashback?: number; cashbackApplied?: number; error?: string };
       if (!res.ok) {
         const msg = data.error ?? "Checkout error";
         setError(msg);
@@ -106,7 +102,6 @@ export default function CartPage() {
       }
       const parts: string[] = [];
       if (data.cashbackApplied && data.cashbackApplied > 0) parts.push(`-${data.cashbackApplied.toLocaleString("ru-KZ")} ₸ cashback`);
-      if (data.ecoPointsApplied && data.ecoPointsApplied > 0) parts.push(`-${Math.round(data.ecoPointsApplied)} pts`);
       parts.push(`+${(data.cashback ?? 0).toLocaleString("ru-KZ")} ₸ new cashback`);
       toast.success("Order placed!", parts.join(" · "));
       clearCart();
@@ -129,7 +124,7 @@ export default function CartPage() {
           </div>
         </div>
         <h1 className="text-2xl font-bold text-[#0a0a0a] mb-2">Order placed!</h1>
-        <p className="text-[#6b6b6b] mb-2">Payment successful. Eco-points have been credited to your account.</p>
+        <p className="text-[#6b6b6b] mb-2">Payment successful. Cashback has been credited to your account.</p>
         <p className="text-sm text-green-600 mb-8 font-medium">🌿 Thank you for choosing eco-friendly!</p>
         <div className="flex justify-center gap-3">
           <Link href="/products"><Button size="lg">Continue shopping</Button></Link>
@@ -322,16 +317,16 @@ export default function CartPage() {
                     </label>
                   )}
 
-                  {(useCashback && cashbackBalance > 0) || (useEcoPoints && ecoPoints > 0) ? (
+                  {useCashback && cashbackBalance > 0 ? (
                     <div className="mt-2 flex justify-between text-sm font-bold text-green-700">
                       <span>To pay</span>
-                      <span>{formatPrice(Math.max(0, totalPrice() - (useCashback ? Math.min(cashbackBalance, totalPrice()) : 0) - (useEcoPoints ? Math.min(ecoPoints, Math.max(0, totalPrice() - (useCashback ? Math.min(cashbackBalance, totalPrice()) : 0))) : 0)))}</span>
+                      <span>{formatPrice(Math.max(0, totalPrice() - (useCashback ? Math.min(cashbackBalance, totalPrice()) : 0)))}</span>
                     </div>
                   ) : null}
 
                   <button
                     onClick={handleBalanceCheckout}
-                    disabled={loadingBalance || loading || balance === null || balance < Math.max(0, totalPrice() - (useCashback ? Math.min(cashbackBalance, totalPrice()) : 0) - (useEcoPoints ? Math.min(ecoPoints, Math.max(0, totalPrice() - (useCashback ? Math.min(cashbackBalance, totalPrice()) : 0))) : 0))}
+                    disabled={loadingBalance || loading || balance === null || balance < Math.max(0, totalPrice() - (useCashback ? Math.min(cashbackBalance, totalPrice()) : 0))}
                     title={balance !== null && balance < totalPrice() ? "Top up your balance in Profile" : undefined}
                     className="mt-2 w-full flex items-center justify-center gap-2 rounded-xl border border-[#e0e0e0] bg-white text-[#0a0a0a] font-medium px-5 py-3 text-sm hover:bg-[#f5f5f5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -347,7 +342,8 @@ export default function CartPage() {
               <div className="mt-4 flex items-start gap-2">
                 <Leaf size={14} className="text-green-500 shrink-0 mt-0.5" />
                 <p className="text-xs text-[#6b6b6b] leading-relaxed">
-                  Eco-points and badges are awarded for every purchase
+                  Badges are awarded for every purchase
+                </p>
                 </p>
               </div>
             </div>

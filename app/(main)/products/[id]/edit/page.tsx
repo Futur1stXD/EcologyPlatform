@@ -78,6 +78,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [isDragging, setIsDragging] = useState(false);
   const [fetching, setFetching] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [existingCertUrl, setExistingCertUrl] = useState<string | null>(null);
+  const [certFile, setCertFile] = useState<File | null>(null);
+  const certInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -112,6 +115,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           isDurable: p.isDurable ?? false,
         });
         setExistingImages(p.images ?? []);
+        setExistingCertUrl(p.certificateUrl ?? null);
         setFetching(false);
       })
       .catch(() => {
@@ -180,6 +184,17 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       uploadedUrls = urls;
     }
 
+    let certificateUrl: string | null | undefined = existingCertUrl;
+    if (certFile) {
+      const fd = new FormData();
+      fd.append("files", certFile);
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
+      if (uploadRes.ok) {
+        const { urls } = await uploadRes.json() as { urls: string[] };
+        certificateUrl = urls[0] ?? existingCertUrl;
+      }
+    }
+
     const images = [...existingImages, ...uploadedUrls];
 
     const ecoScore = calculateEcoScore({
@@ -202,7 +217,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     const res = await fetch(`/api/products/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...rest, materials, images, ecoScore, status: "PENDING" }),
+      body: JSON.stringify({ ...rest, materials, images, ecoScore, status: "PENDING", certificateUrl }),
     });
 
     if (!res.ok) {
@@ -302,6 +317,46 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                   </button>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Certificate upload */}
+        <div>
+          <p className="text-sm font-medium text-[#0a0a0a] mb-1">Eco certificate <span className="text-[#a3a3a3] font-normal">(optional)</span></p>
+          <p className="text-xs text-[#6b6b6b] mb-2">Upload an organic, fair-trade or other eco certification. Admins will review it during moderation.</p>
+          {existingCertUrl && !certFile && (
+            <div className="mb-2 flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+              <span>📄</span>
+              <a href={existingCertUrl} target="_blank" rel="noopener noreferrer" className="underline truncate flex-1">
+                View current certificate
+              </a>
+              <button type="button" onClick={() => setExistingCertUrl(null)} className="text-[#a3a3a3] hover:text-red-500 shrink-0">✕</button>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => certInputRef.current?.click()}
+            className="w-full rounded-xl border-2 border-dashed border-[#e5e5e5] p-5 flex flex-col items-center gap-2 hover:border-green-400 hover:bg-green-50/40 transition-colors"
+          >
+            <span className="text-2xl">📄</span>
+            <span className="text-sm font-medium text-[#0a0a0a]">
+              {existingCertUrl ? "Replace certificate" : "Upload certificate"}
+            </span>
+            <span className="text-xs text-[#6b6b6b]">PDF or image (JPG, PNG)</span>
+          </button>
+          <input
+            ref={certInputRef}
+            type="file"
+            accept="image/*,application/pdf"
+            className="hidden"
+            onChange={(e) => setCertFile(e.target.files?.[0] ?? null)}
+          />
+          {certFile && (
+            <div className="mt-2 flex items-center gap-2 text-sm text-green-700">
+              <span>✓</span>
+              <span className="truncate">{certFile.name}</span>
+              <button type="button" onClick={() => setCertFile(null)} className="ml-auto text-[#a3a3a3] hover:text-red-500">✕</button>
             </div>
           )}
         </div>
