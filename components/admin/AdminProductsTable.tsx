@@ -56,13 +56,13 @@ export function AdminProductsTable({ products: initial }: AdminProductsTableProp
       <table className="w-full text-sm">
         <thead className="border-b border-[#e5e5e5] bg-[#fafafa]">
           <tr>
-            <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Товар</th>
-            <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Продавец</th>
+            <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Product</th>
+            <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Seller</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Eco</th>
-            <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Цена</th>
-            <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Статус</th>
-            <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Дата</th>
-            <th className="px-4 py-3 text-xs font-medium text-[#6b6b6b]">Действия</th>
+            <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Price</th>
+            <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Status</th>
+            <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Date</th>
+            <th className="px-4 py-3 text-xs font-medium text-[#6b6b6b]">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-[#e5e5e5]">
@@ -81,7 +81,7 @@ export function AdminProductsTable({ products: initial }: AdminProductsTableProp
                     p.status === "APPROVED" ? "green" : p.status === "REJECTED" ? "red" : "yellow"
                   }
                 >
-                  {p.status === "APPROVED" ? "Одобрен" : p.status === "REJECTED" ? "Отклонён" : "Ожидает"}
+                  {p.status === "APPROVED" ? "Approved" : p.status === "REJECTED" ? "Rejected" : "Pending"}
                 </Badge>
               </td>
               <td className="px-4 py-3 text-xs text-[#6b6b6b]">{formatDate(p.createdAt)}</td>

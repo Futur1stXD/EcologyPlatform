@@ -69,8 +69,8 @@ export default async function ProductsPage({ searchParams }: Props) {
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#0a0a0a] mb-1">Каталог товаров</h1>
-        <p className="text-sm text-[#6b6b6b]">{total} товаров</p>
+        <h1 className="text-2xl font-bold text-[#0a0a0a] mb-1">Product Catalogue</h1>
+        <p className="text-sm text-[#6b6b6b]">{total} product{total !== 1 ? "s" : ""}</p>
       </div>
 
       <div className="mb-6">
@@ -81,8 +81,8 @@ export default async function ProductsPage({ searchParams }: Props) {
 
       {products.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <p className="text-lg font-medium text-[#0a0a0a] mb-2">Товары не найдены</p>
-          <p className="text-sm text-[#6b6b6b]">Попробуйте изменить фильтры</p>
+          <p className="text-lg font-medium text-[#0a0a0a] mb-2">No products found</p>
+          <p className="text-sm text-[#6b6b6b]">Try adjusting the filters</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">

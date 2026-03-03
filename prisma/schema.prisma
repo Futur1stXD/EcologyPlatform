@@ -34,6 +34,8 @@ enum BadgeType {
 model User {
   id            String    @id @default(cuid())
   name          String?
+  lastName      String?
+  dateOfBirth   DateTime?
   email         String    @unique
   emailVerified DateTime?
   image         String?
@@ -159,10 +161,11 @@ model Subscription {
 }
 
 model Order {
-  id         String      @id @default(cuid())
-  userId     String
-  totalPrice Float
-  createdAt  DateTime    @default(now())
+  id              String      @id @default(cuid())
+  userId          String
+  totalPrice      Float
+  stripeSessionId String?     @unique
+  createdAt       DateTime    @default(now())
 
   user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   items OrderItem[]

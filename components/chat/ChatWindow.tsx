@@ -103,7 +103,7 @@ export function ChatWindow({ roomId, initialMessages, otherUser }: ChatWindowPro
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Написать сообщение..."
+          placeholder="Write a message..."
           className="flex-1 h-10 rounded-lg border border-[#e5e5e5] px-3 text-sm outline-none focus:border-[#0a0a0a] transition-colors"
         />
         <button

@@ -11,8 +11,8 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
 const schema = z.object({
-  email: z.string().email("Введите корректный email"),
-  password: z.string().min(6, "Минимум 6 символов"),
+  email: z.string().email("Enter a valid email"),
+  password: z.string().min(6, "Minimum 6 characters"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -38,7 +38,7 @@ export default function LoginPage() {
     });
 
     if (res?.error) {
-      setServerError("Неверный email или пароль");
+      setServerError("Invalid email or password");
     } else {
       router.push(callbackUrl);
       router.refresh();
@@ -47,8 +47,8 @@ export default function LoginPage() {
 
   return (
     <div className="rounded-2xl border border-[#e5e5e5] bg-white p-8">
-      <h1 className="text-xl font-bold text-[#0a0a0a] mb-1">Войти</h1>
-      <p className="text-sm text-[#6b6b6b] mb-6">Войдите в свой аккаунт EcoMarket</p>
+      <h1 className="text-xl font-bold text-[#0a0a0a] mb-1">Sign In</h1>
+      <p className="text-sm text-[#6b6b6b] mb-6">Log in to your EcoMarket account</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <Input
@@ -62,7 +62,7 @@ export default function LoginPage() {
         <Input
           id="password"
           type="password"
-          label="Пароль"
+          label="Password"
           placeholder="••••••"
           error={errors.password?.message}
           {...register("password")}
@@ -73,14 +73,14 @@ export default function LoginPage() {
         )}
 
         <Button type="submit" loading={isSubmitting} className="w-full mt-1">
-          Войти
+          Sign In
         </Button>
       </form>
 
       <p className="text-sm text-center text-[#6b6b6b] mt-5">
-        Нет аккаунта?{" "}
+        Don&apos;t have an account?{" "}
         <Link href="/register" className="text-[#0a0a0a] font-medium hover:underline">
-          Зарегистрироваться
+          Create account
         </Link>
       </p>
     </div>

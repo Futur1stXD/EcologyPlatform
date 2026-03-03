@@ -2,11 +2,11 @@ import { BadgeType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 const BADGE_CRITERIA = {
-  [BadgeType.FIRST_PURCHASE]: { label: "Первая покупка", points: 50 },
-  [BadgeType.TEN_PURCHASES]: { label: "10 покупок", points: 200 },
-  [BadgeType.GREEN_BUYER]: { label: "Зелёный покупатель", points: 150 },
-  [BadgeType.ECO_HERO]: { label: "Eco-Герой", points: 500 },
-  [BadgeType.HUNDRED_POINTS]: { label: "100 очков", points: 0 },
+  [BadgeType.FIRST_PURCHASE]: { label: "First Purchase", points: 50 },
+  [BadgeType.TEN_PURCHASES]: { label: "10 Purchases", points: 200 },
+  [BadgeType.GREEN_BUYER]: { label: "Green Buyer", points: 150 },
+  [BadgeType.ECO_HERO]: { label: "Eco Hero", points: 500 },
+  [BadgeType.HUNDRED_POINTS]: { label: "100 Points", points: 0 },
 };
 
 export function getBadgeInfo(badge: BadgeType) {

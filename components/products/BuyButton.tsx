@@ -22,7 +22,7 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
   if (purchased) {
     return (
       <div className="w-full flex items-center justify-center gap-2 rounded-xl bg-green-50 border border-green-200 px-5 py-3">
-        <span className="text-green-700 font-medium text-sm">✓ Товар приобретён</span>
+        <span className="text-green-700 font-medium text-sm">✓ Product purchased</span>
       </div>
     );
   }
@@ -30,7 +30,7 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
   if (isSeller) {
     return (
       <div className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#f5f5f5] px-5 py-3">
-        <span className="text-[#6b6b6b] text-sm">Это ваш товар</span>
+        <span className="text-[#6b6b6b] text-sm">This is your product</span>
       </div>
     );
   }
@@ -54,13 +54,13 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error ?? "Ошибка оплаты");
+        setError(data.error ?? "Payment error");
         return;
       }
 
       window.location.href = data.url;
     } catch {
-      setError("Ошибка соединения");
+      setError("Connection error");
     } finally {
       setLoading(false);
     }
@@ -78,10 +78,10 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
         ) : (
           <ShoppingCart size={16} />
         )}
-        {loading ? "Перенаправление..." : "Купить через Stripe"}
+        {loading ? "Redirecting..." : "Buy via Stripe"}
       </button>
       {!session && (
-        <p className="text-xs text-center text-[#6b6b6b]">Нужна авторизация для покупки</p>
+        <p className="text-xs text-center text-[#6b6b6b]">Sign in required to purchase</p>
       )}
       {error && <p className="text-xs text-red-500 text-center">{error}</p>}
     </div>

@@ -5,10 +5,10 @@ import { getBadgeInfo } from "@/lib/gamification";
 import { formatDate } from "@/lib/utils";
 
 const LEVELS = [
-  { label: "Новичок", minPoints: 0, icon: "🌱" },
-  { label: "Знаток", minPoints: 100, icon: "🌿" },
-  { label: "Защитник", minPoints: 300, icon: "🌳" },
-  { label: "Eco-Герой", minPoints: 600, icon: "🦸" },
+  { label: "Beginner", minPoints: 0, icon: "🌱" },
+  { label: "Explorer", minPoints: 100, icon: "🌿" },
+  { label: "Guardian", minPoints: 300, icon: "🌳" },
+  { label: "Eco Hero", minPoints: 600, icon: "🦸" },
 ];
 
 export default async function RewardsPage() {
@@ -37,8 +37,8 @@ export default async function RewardsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
-      <h1 className="text-2xl font-bold text-[#0a0a0a] mb-1">Мои награды</h1>
-      <p className="text-sm text-[#6b6b6b] mb-8">Делайте eco-покупки и зарабатывайте очки и значки</p>
+      <h1 className="text-2xl font-bold text-[#0a0a0a] mb-1">My Rewards</h1>
+      <p className="text-sm text-[#6b6b6b] mb-8">Make eco-purchases and earn points and badges</p>
 
       {/* Level & points */}
       <div className="border border-[#e5e5e5] rounded-2xl p-6 mb-6">
@@ -49,7 +49,7 @@ export default async function RewardsPage() {
           </div>
           <div className="text-right">
             <p className="text-3xl font-bold text-[#0a0a0a]">{user.ecoPoints}</p>
-            <p className="text-xs text-[#6b6b6b]">eco-очков</p>
+            <p className="text-xs text-[#6b6b6b]">eco-points</p>
           </div>
         </div>
 
@@ -62,24 +62,24 @@ export default async function RewardsPage() {
               />
             </div>
             <p className="text-xs text-[#6b6b6b]">
-              {user.ecoPoints} / {nextLevel.minPoints} до уровня «{nextLevel.label} {nextLevel.icon}»
+              {user.ecoPoints} / {nextLevel.minPoints} to level «{nextLevel.label} {nextLevel.icon}»
             </p>
           </>
         )}
 
         <p className="text-sm text-[#6b6b6b] mt-3">
-          Всего покупок: <span className="font-medium text-[#0a0a0a]">{user._count.orders}</span>
+          Total purchases: <span className="font-medium text-[#0a0a0a]">{user._count.orders}</span>
         </p>
       </div>
 
       {/* How to earn */}
       <div className="border border-[#e5e5e5] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#0a0a0a] mb-4">Как заработать очки</h2>
+        <h2 className="text-base font-semibold text-[#0a0a0a] mb-4">How to earn points</h2>
         <div className="space-y-2">
           {[
-            { action: "Совершить покупку", points: "+20 очков" },
-            { action: "Оставить отзыв", points: "+5 очков (скоро)" },
-            { action: "Пригласить друга", points: "+50 очков (скоро)" },
+            { action: "Make a purchase", points: "+20 pts" },
+            { action: "Leave a review", points: "+5 pts (soon)" },
+            { action: "Invite a friend", points: "+50 pts (soon)" },
           ].map((item) => (
             <div key={item.action} className="flex items-center justify-between text-sm">
               <span className="text-[#6b6b6b]">{item.action}</span>
@@ -91,7 +91,7 @@ export default async function RewardsPage() {
 
       {/* Badges */}
       <div className="border border-[#e5e5e5] rounded-2xl p-6">
-        <h2 className="text-base font-semibold text-[#0a0a0a] mb-4">Значки</h2>
+        <h2 className="text-base font-semibold text-[#0a0a0a] mb-4">Badges</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {ALL_BADGES.map((badge) => {
             const info = getBadgeInfo(badge as Parameters<typeof getBadgeInfo>[0]);
@@ -109,9 +109,9 @@ export default async function RewardsPage() {
                 <div>
                   <p className="text-sm font-medium text-[#0a0a0a]">{info.label}</p>
                   {earned && awardedAt ? (
-                    <p className="text-xs text-[#6b6b6b]">Получено {formatDate(awardedAt)}</p>
+                    <p className="text-xs text-[#6b6b6b]">Earned {formatDate(awardedAt)}</p>
                   ) : (
-                    <p className="text-xs text-[#a3a3a3]">Ещё не получен</p>
+                    <p className="text-xs text-[#a3a3a3]">Not earned yet</p>
                   )}
                 </div>
               </div>

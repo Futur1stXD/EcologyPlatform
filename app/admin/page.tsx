@@ -12,12 +12,12 @@ export default async function AdminDashboardPage() {
   ]);
 
   const stats = [
-    { label: "Пользователей", value: totalUsers },
-    { label: "Товаров", value: totalProducts },
-    { label: "На модерации", value: pendingProducts, alert: pendingProducts > 0 },
-    { label: "Заказов", value: totalOrders },
-    { label: "Выручка", value: formatPrice(ordersAgg._sum.totalPrice ?? 0) },
-    { label: "Premium подписок", value: premiumSubs },
+    { label: "Users", value: totalUsers },
+    { label: "Products", value: totalProducts },
+    { label: "Pending review", value: pendingProducts, alert: pendingProducts > 0 },
+    { label: "Orders", value: totalOrders },
+    { label: "Revenue", value: formatPrice(ordersAgg._sum.totalPrice ?? 0) },
+    { label: "Premium subscriptions", value: premiumSubs },
   ];
 
   // Recent products pending moderation
@@ -30,7 +30,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-[#0a0a0a] mb-8">Обзор</h1>
+      <h1 className="text-2xl font-bold text-[#0a0a0a] mb-8">Overview</h1>
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
@@ -51,17 +51,17 @@ export default async function AdminDashboardPage() {
       {pendingList.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-[#0a0a0a]">Ожидают модерации ({pendingList.length})</h2>
-            <a href="/admin/products" className="text-sm text-[#6b6b6b] hover:text-[#0a0a0a]">Все товары →</a>
+            <h2 className="text-base font-semibold text-[#0a0a0a]">Pending moderation ({pendingList.length})</h2>
+            <a href="/admin/products" className="text-sm text-[#6b6b6b] hover:text-[#0a0a0a]">All products →</a>
           </div>
           <div className="border border-[#e5e5e5] rounded-xl overflow-hidden">
             <table className="w-full text-sm">
               <thead className="border-b border-[#e5e5e5] bg-[#fafafa]">
                 <tr>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Товар</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Продавец</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Product</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Seller</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Eco-Score</th>
-                  <th className="px-4 py-3 text-xs font-medium text-[#6b6b6b]">Действие</th>
+                  <th className="px-4 py-3 text-xs font-medium text-[#6b6b6b]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#e5e5e5]">
@@ -72,7 +72,7 @@ export default async function AdminDashboardPage() {
                     <td className="px-4 py-3 text-[#0a0a0a] font-medium">{p.ecoScore}</td>
                     <td className="px-4 py-3">
                       <a href={`/admin/products?highlight=${p.id}`} className="text-xs font-medium text-[#0a0a0a] hover:underline">
-                        Проверить
+                        Review
                       </a>
                     </td>
                   </tr>

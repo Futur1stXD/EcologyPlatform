@@ -1,4 +1,4 @@
-export type EcoScoreLabel = "Отлично" | "Хорошо" | "Средне" | "Плохо";
+export type EcoScoreLabel = "Excellent" | "Good" | "Average" | "Poor";
 
 export interface EcoScoreResult {
   score: number;
@@ -71,12 +71,12 @@ export function calculateEcoScore(params: {
 
 export function getEcoScoreResult(score: number): EcoScoreResult {
   if (score >= 80) {
-    return { score, label: "Отлично", color: "#16a34a", description: "Минимальный след на природе" };
+    return { score, label: "Excellent", color: "#16a34a", description: "Minimal environmental footprint" };
   } else if (score >= 60) {
-    return { score, label: "Хорошо", color: "#65a30d", description: "Товар экологически ответственный" };
+    return { score, label: "Good", color: "#65a30d", description: "Eco-responsible product" };
   } else if (score >= 40) {
-    return { score, label: "Средне", color: "#ca8a04", description: "Есть потенциал для улучшения" };
+    return { score, label: "Average", color: "#ca8a04", description: "Room for improvement" };
   } else {
-    return { score, label: "Плохо", color: "#dc2626", description: "Высокое влияние на окружающую среду" };
+    return { score, label: "Poor", color: "#dc2626", description: "High environmental impact" };
   }
 }

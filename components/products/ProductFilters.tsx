@@ -6,28 +6,28 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { Select } from "@/components/ui/Select";
 
 const CATEGORIES = [
-  { value: "", label: "Все категории" },
-  { value: "Одежда", label: "Одежда" },
-  { value: "Косметика", label: "Косметика" },
-  { value: "Продукты", label: "Продукты" },
-  { value: "Дом", label: "Дом и быт" },
-  { value: "Электроника", label: "Электроника" },
-  { value: "Упаковка", label: "Упаковка" },
-  { value: "Другое", label: "Другое" },
+  { value: "", label: "All categories" },
+  { value: "Одежда", label: "Clothing" },
+  { value: "Косметика", label: "Cosmetics" },
+  { value: "Продукты", label: "Food" },
+  { value: "Дом", label: "Home & Living" },
+  { value: "Электроника", label: "Electronics" },
+  { value: "Упаковка", label: "Packaging" },
+  { value: "Другое", label: "Other" },
 ];
 
 const SORT_OPTIONS = [
-  { value: "newest", label: "Новые" },
-  { value: "price_asc", label: "Цена ↑" },
-  { value: "price_desc", label: "Цена ↓" },
+  { value: "newest", label: "Newest" },
+  { value: "price_asc", label: "Price ↑" },
+  { value: "price_desc", label: "Price ↓" },
   { value: "eco_score", label: "Eco-Score" },
 ];
 
 const ECO_SCORE_OPTIONS = [
-  { value: "", label: "Любой Eco-Score" },
-  { value: "80", label: "Отлично (80+)" },
-  { value: "60", label: "Хорошо (60+)" },
-  { value: "40", label: "Средне (40+)" },
+  { value: "", label: "Any Eco-Score" },
+  { value: "80", label: "Excellent (80+)" },
+  { value: "60", label: "Good (60+)" },
+  { value: "40", label: "Average (40+)" },
 ];
 
 export function ProductFilters() {
@@ -55,7 +55,7 @@ export function ProductFilters() {
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" />
         <input
           defaultValue={searchParams.get("search") ?? ""}
-          placeholder="Поиск товаров..."
+          placeholder="Search products..."
           className="h-10 w-full rounded-lg border border-[#e5e5e5] bg-white pl-9 pr-3 text-sm outline-none focus:border-[#0a0a0a] transition-colors"
           onChange={(e) => updateParam("search", e.target.value)}
         />

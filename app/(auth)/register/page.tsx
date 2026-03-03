@@ -11,9 +11,11 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
 const schema = z.object({
-  name: z.string().min(2, "Минимум 2 символа"),
-  email: z.string().email("Введите корректный email"),
-  password: z.string().min(6, "Минимум 6 символов"),
+  name: z.string().min(2, "Minimum 2 characters"),
+  lastName: z.string().min(2, "Minimum 2 characters"),
+  dateOfBirth: z.string().min(1, "Enter your date of birth"),
+  email: z.string().email("Enter a valid email"),
+  password: z.string().min(6, "Minimum 6 characters"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -38,7 +40,7 @@ export default function RegisterPage() {
 
     if (!res.ok) {
       const body = await res.json();
-      setServerError(body.error ?? "Ошибка регистрации");
+      setServerError(body.error ?? "Registration error");
       return;
     }
 
@@ -50,16 +52,32 @@ export default function RegisterPage() {
 
   return (
     <div className="rounded-2xl border border-[#e5e5e5] bg-white p-8">
-      <h1 className="text-xl font-bold text-[#0a0a0a] mb-1">Создать аккаунт</h1>
-      <p className="text-sm text-[#6b6b6b] mb-6">Присоединяйтесь к EcoMarket</p>
+      <h1 className="text-xl font-bold text-[#0a0a0a] mb-1">Create account</h1>
+      <p className="text-sm text-[#6b6b6b] mb-6">Join EcoMarket</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            id="name"
+            label="First name"
+            placeholder="John"
+            error={errors.name?.message}
+            {...register("name")}
+          />
+          <Input
+            id="lastName"
+            label="Last name"
+            placeholder="Smith"
+            error={errors.lastName?.message}
+            {...register("lastName")}
+          />
+        </div>
         <Input
-          id="name"
-          label="Имя"
-          placeholder="Иван Иванов"
-          error={errors.name?.message}
-          {...register("name")}
+          id="dateOfBirth"
+          type="date"
+          label="Date of birth"
+          error={errors.dateOfBirth?.message}
+          {...register("dateOfBirth")}
         />
         <Input
           id="email"
@@ -72,8 +90,8 @@ export default function RegisterPage() {
         <Input
           id="password"
           type="password"
-          label="Пароль"
-          placeholder="Минимум 6 символов"
+          label="Password"
+          placeholder="Minimum 6 characters"
           error={errors.password?.message}
           {...register("password")}
         />
@@ -83,14 +101,14 @@ export default function RegisterPage() {
         )}
 
         <Button type="submit" loading={isSubmitting} className="w-full mt-1">
-          Зарегистрироваться
+          Create account
         </Button>
       </form>
 
       <p className="text-sm text-center text-[#6b6b6b] mt-5">
-        Уже есть аккаунт?{" "}
+        Already have an account?{" "}
         <Link href="/login" className="text-[#0a0a0a] font-medium hover:underline">
-          Войти
+          Sign in
         </Link>
       </p>
     </div>

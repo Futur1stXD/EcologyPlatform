@@ -19,8 +19,8 @@ export function ReviewForm({ productId }: ReviewFormProps) {
   const [error, setError] = useState("");
 
   const submit = async () => {
-    if (rating === 0) { setError("Выберите рейтинг"); return; }
-    if (comment.trim().length < 3) { setError("Отзыв слишком короткий"); return; }
+    if (rating === 0) { setError("Please select a rating"); return; }
+    if (comment.trim().length < 3) { setError("Review is too short"); return; }
 
     setLoading(true);
     setError("");
@@ -35,14 +35,14 @@ export function ReviewForm({ productId }: ReviewFormProps) {
       router.refresh();
     } else {
       const data = await res.json();
-      setError(data.error ?? "Ошибка отправки");
+      setError(data.error ?? "Failed to submit review");
     }
     setLoading(false);
   };
 
   return (
     <div className="border border-[#e5e5e5] rounded-xl p-5">
-      <h3 className="text-sm font-semibold text-[#0a0a0a] mb-4">Оставить отзыв</h3>
+      <h3 className="text-sm font-semibold text-[#0a0a0a] mb-4">Leave a review</h3>
 
       {/* Star rating */}
       <div className="flex gap-1 mb-4">
@@ -65,7 +65,7 @@ export function ReviewForm({ productId }: ReviewFormProps) {
       </div>
 
       <Textarea
-        placeholder="Ваш отзыв..."
+        placeholder="Your review..."
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         className="mb-3"
@@ -73,7 +73,7 @@ export function ReviewForm({ productId }: ReviewFormProps) {
 
       {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
 
-      <Button onClick={submit} loading={loading} size="sm">Отправить отзыв</Button>
+      <Button onClick={submit} loading={loading} size="sm">Submit review</Button>
     </div>
   );
 }

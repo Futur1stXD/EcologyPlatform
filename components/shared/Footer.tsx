@@ -12,17 +12,17 @@ export function Footer() {
               EcoMarket
             </Link>
             <p className="text-sm text-[#6b6b6b] leading-relaxed">
-              Платформа для осознанных покупок. Поддерживаем местных eco-производителей.
+              A platform for conscious shopping. Supporting local eco-producers.
             </p>
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-[#0a0a0a] mb-3">Платформа</h4>
+            <h4 className="text-sm font-semibold text-[#0a0a0a] mb-3">Platform</h4>
             <ul className="space-y-2">
               {[
-                { href: "/products", label: "Каталог товаров" },
-                { href: "/subscription", label: "Премиум для продавцов" },
-                { href: "/rewards", label: "Система наград" },
+                { href: "/products", label: "Product catalogue" },
+                { href: "/subscription", label: "Premium for sellers" },
+                { href: "/rewards", label: "Rewards" },
               ].map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-sm text-[#6b6b6b] hover:text-[#0a0a0a] transition-colors">
@@ -34,11 +34,11 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-[#0a0a0a] mb-3">Помощь</h4>
+            <h4 className="text-sm font-semibold text-[#0a0a0a] mb-3">Help</h4>
             <ul className="space-y-2">
               {[
-                { href: "/register", label: "Стать продавцом" },
-                { href: "/login", label: "Войти" },
+                { href: "/register", label: "Become a seller" },
+                { href: "/login", label: "Sign in" },
               ].map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-sm text-[#6b6b6b] hover:text-[#0a0a0a] transition-colors">
@@ -51,8 +51,8 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t border-[#e5e5e5] pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-[#a3a3a3]">© 2026 EcoMarket. Все права защищены.</p>
-          <p className="text-xs text-[#a3a3a3]">Сделано с 🌱 для планеты</p>
+          <p className="text-xs text-[#a3a3a3]">© 2026 EcoMarket. All rights reserved.</p>
+          <p className="text-xs text-[#a3a3a3]">Made with 🌱 for the planet</p>
         </div>
       </div>
     </footer>

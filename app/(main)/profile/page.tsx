@@ -41,11 +41,11 @@ export default async function ProfilePage() {
   const isSeller = user.role === "SELLER" || user.role === "ADMIN";
 
   const BADGE_LABELS: Record<string, string> = {
-    GREEN_BUYER: "🌿 Зелёный покупатель",
-    ECO_HERO: "🦸 Eco-Герой",
-    FIRST_PURCHASE: "🛍️ Первая покупка",
-    TEN_PURCHASES: "🔟 10 покупок",
-    HUNDRED_POINTS: "💯 100 очков",
+    GREEN_BUYER: "🌿 Green Buyer",
+    ECO_HERO: "🦸 Eco Hero",
+    FIRST_PURCHASE: "🛍️ First Purchase",
+    TEN_PURCHASES: "🔟 10 Purchases",
+    HUNDRED_POINTS: "💯 100 Points",
   };
 
   return (
@@ -61,14 +61,14 @@ export default async function ProfilePage() {
               <h1 className="text-xl font-bold text-[#0a0a0a]">{user.name}</h1>
               <p className="text-sm text-[#6b6b6b]">{user.email}</p>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline">{user.role === "SELLER" ? "Продавец" : user.role === "ADMIN" ? "Админ" : "Покупатель"}</Badge>
+                <Badge variant="outline">{user.role === "SELLER" ? "Seller" : user.role === "ADMIN" ? "Admin" : "Buyer"}</Badge>
                 {user.subscription?.plan === "PREMIUM" && <Badge variant="default">⭐ Premium</Badge>}
               </div>
             </div>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold text-[#0a0a0a]">{user.ecoPoints}</p>
-            <p className="text-xs text-[#6b6b6b]">eco-очков</p>
+            <p className="text-xs text-[#6b6b6b]">eco-points</p>
           </div>
         </div>
 
@@ -77,12 +77,12 @@ export default async function ProfilePage() {
         <div className="flex flex-wrap gap-2 mt-4">
           {isSeller && (
             <Link href="/products/new">
-              <Button size="sm" variant="outline">+ Добавить товар</Button>
+              <Button size="sm" variant="outline">+ Add product</Button>
             </Link>
           )}
           {user.subscription?.plan !== "PREMIUM" && isSeller && (
             <Link href="/subscription">
-              <Button size="sm" variant="secondary">Получить Premium</Button>
+              <Button size="sm" variant="secondary">Get Premium</Button>
             </Link>
           )}
           <Link href="/rewards">
@@ -94,7 +94,7 @@ export default async function ProfilePage() {
       {/* Badges */}
       {user.badges.length > 0 && (
         <div className="border border-[#e5e5e5] rounded-2xl p-6 mb-6">
-          <h2 className="text-base font-semibold text-[#0a0a0a] mb-4">Достижения</h2>
+          <h2 className="text-base font-semibold text-[#0a0a0a] mb-4">Achievements</h2>
           <div className="flex flex-wrap gap-2">
             {user.badges.map((b: { badge: string }) => (
               <span key={b.badge} className="rounded-full border border-[#e5e5e5] px-3 py-1 text-sm text-[#0a0a0a]">
@@ -108,7 +108,7 @@ export default async function ProfilePage() {
       {/* Products (seller) */}
       {isSeller && user.products.length > 0 && (
         <div className="border border-[#e5e5e5] rounded-2xl p-6 mb-6">
-          <h2 className="text-base font-semibold text-[#0a0a0a] mb-4">Мои товары</h2>
+          <h2 className="text-base font-semibold text-[#0a0a0a] mb-4">My products</h2>
           <div className="space-y-3">
             {user.products.map((p: { id: string; title: string; price: number; status: string; ecoScore: number; createdAt: Date }) => (
               <div key={p.id} className="flex items-center justify-between gap-3 py-2 border-b border-[#e5e5e5] last:border-0">
@@ -119,7 +119,7 @@ export default async function ProfilePage() {
                 <div className="flex items-center gap-2">
                   <EcoScoreBadge score={p.ecoScore} compact />
                   <Badge variant={p.status === "APPROVED" ? "green" : p.status === "REJECTED" ? "red" : "yellow"}>
-                    {p.status === "APPROVED" ? "Опубликован" : p.status === "REJECTED" ? "Отклонён" : "На проверке"}
+                    {p.status === "APPROVED" ? "Published" : p.status === "REJECTED" ? "Rejected" : "Under review"}
                   </Badge>
                   <Link href={`/products/${p.id}`} className="text-xs text-[#6b6b6b] hover:text-[#0a0a0a]">
                     Открыть
@@ -134,12 +134,12 @@ export default async function ProfilePage() {
       {/* Orders */}
       {user.orders.length > 0 && (
         <div className="border border-[#e5e5e5] rounded-2xl p-6">
-          <h2 className="text-base font-semibold text-[#0a0a0a] mb-4">История заказов</h2>
+          <h2 className="text-base font-semibold text-[#0a0a0a] mb-4">Order history</h2>
           <div className="space-y-3">
             {user.orders.map((o: { id: string; totalPrice: number; createdAt: Date; items: { quantity: number; product: { title: string } }[] }) => (
               <div key={o.id} className="py-2 border-b border-[#e5e5e5] last:border-0">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-sm font-medium text-[#0a0a0a]">Заказ #{o.id.slice(-6)}</p>
+                  <p className="text-sm font-medium text-[#0a0a0a]">Order #{o.id.slice(-6)}</p>
                   <p className="text-sm font-semibold text-[#0a0a0a]">{formatPrice(o.totalPrice)}</p>
                 </div>
                 <p className="text-xs text-[#6b6b6b]">

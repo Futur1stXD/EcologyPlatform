@@ -32,7 +32,7 @@ export function ContactSellerButton({ sellerId, productId }: ContactSellerButton
   return (
     <Button variant="outline" size="sm" onClick={startChat} loading={loading}>
       <MessageCircle size={14} className="mr-1.5" />
-      Написать
+      Message
     </Button>
   );
 }

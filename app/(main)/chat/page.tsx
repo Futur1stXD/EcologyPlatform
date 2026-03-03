@@ -22,12 +22,12 @@ export default async function ChatListPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 sm:px-6 py-10">
-      <h1 className="text-2xl font-bold text-[#0a0a0a] mb-6">Сообщения</h1>
+      <h1 className="text-2xl font-bold text-[#0a0a0a] mb-6">Messages</h1>
 
       {rooms.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-[#6b6b6b] text-sm mb-2">Нет активных диалогов</p>
-          <p className="text-xs text-[#a3a3a3]">Начните чат со страницы товара</p>
+          <p className="text-[#6b6b6b] text-sm mb-2">No active conversations</p>
+          <p className="text-xs text-[#a3a3a3]">Start a chat from a product page</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -54,7 +54,7 @@ export default async function ChatListPage() {
                   {lastMsg ? (
                     <p className="text-sm text-[#6b6b6b] truncate">{lastMsg.content}</p>
                   ) : (
-                    <p className="text-xs text-[#a3a3a3]">Нет сообщений</p>
+                    <p className="text-xs text-[#a3a3a3]">No messages yet</p>
                   )}
                 </div>
               </Link>

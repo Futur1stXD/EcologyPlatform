@@ -32,13 +32,13 @@ export function ProductCard({ product }: ProductCardProps) {
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-[#a3a3a3] text-sm">Нет фото</div>
+            <div className="flex items-center justify-center h-full text-[#a3a3a3] text-sm">No photo</div>
           )}
 
           {/* Featured badge for premium sellers */}
           {isPremium && product.isFeatured && (
             <div className="absolute top-2 left-2">
-              <Badge variant="default" className="text-[10px]">⭐ Топ</Badge>
+              <Badge variant="default" className="text-[10px]">⭐ Featured</Badge>
             </div>
           )}
 
@@ -66,7 +66,7 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
 
           <p className="text-xs text-[#a3a3a3] mt-1">
-            {product.seller?.name ?? "Продавец"}
+            {product.seller?.name ?? "Seller"}
           </p>
         </div>
       </div>

@@ -31,7 +31,7 @@ export default async function ChatRoomPage({ params }: { params: Promise<{ id: s
     <div className="mx-auto max-w-2xl px-4 sm:px-6 py-6">
       <Link href="/chat" className="inline-flex items-center gap-1.5 text-sm text-[#6b6b6b] hover:text-[#0a0a0a] mb-4 transition-colors">
         <ArrowLeft size={14} />
-        Все сообщения
+        All messages
       </Link>
 
       <div className="border border-[#e5e5e5] rounded-2xl overflow-hidden h-[600px]">

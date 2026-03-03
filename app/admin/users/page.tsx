@@ -14,18 +14,18 @@ export default async function AdminUsersPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-[#0a0a0a] mb-6">Пользователи ({users.length})</h1>
+      <h1 className="text-2xl font-bold text-[#0a0a0a] mb-6">Users ({users.length})</h1>
 
       <div className="border border-[#e5e5e5] rounded-xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="border-b border-[#e5e5e5] bg-[#fafafa]">
             <tr>
-              <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Пользователь</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Роль</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Подписка</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Товары</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Заказы</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Дата</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">User</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Role</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Subscription</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Products</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Orders</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Joined</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e5e5e5]">
@@ -37,7 +37,7 @@ export default async function AdminUsersPage() {
                 </td>
                 <td className="px-4 py-3">
                   <Badge variant="outline">
-                    {u.role === "SELLER" ? "Продавец" : u.role === "ADMIN" ? "Админ" : "Покупатель"}
+                    {u.role === "SELLER" ? "Seller" : u.role === "ADMIN" ? "Admin" : "Buyer"}
                   </Badge>
                 </td>
                 <td className="px-4 py-3">

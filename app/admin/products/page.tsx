@@ -22,14 +22,14 @@ export default async function AdminProductsPage({ searchParams }: Props) {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-[#0a0a0a]">Товары ({products.length})</h1>
+        <h1 className="text-2xl font-bold text-[#0a0a0a]">Products ({products.length})</h1>
 
         <div className="flex gap-2">
           {[
-            { value: "", label: "Все" },
-            { value: "PENDING", label: "На проверке" },
-            { value: "APPROVED", label: "Одобренные" },
-            { value: "REJECTED", label: "Отклонённые" },
+            { value: "", label: "All" },
+            { value: "PENDING", label: "Pending" },
+            { value: "APPROVED", label: "Approved" },
+            { value: "REJECTED", label: "Rejected" },
           ].map((opt) => (
             <a
               key={opt.value}

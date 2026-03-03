@@ -14,12 +14,12 @@ import { calculateEcoScore } from "@/lib/eco-score";
 import { EcoScoreBadge } from "@/components/products/EcoScoreBadge";
 
 const schema = z.object({
-  title: z.string().min(3, "Минимум 3 символа"),
-  description: z.string().min(10, "Минимум 10 символов"),
-  price: z.number().positive("Введите корректную цену"),
-  category: z.string().min(1, "Выберите категорию"),
-  origin: z.string().min(2, "Укажите происхождение"),
-  materialsRaw: z.string().min(2, "Укажите материалы (через запятую)"),
+  title: z.string().min(3, "Minimum 3 characters"),
+  description: z.string().min(10, "Minimum 10 characters"),
+  price: z.number().positive("Enter a valid price"),
+  category: z.string().min(1, "Select a category"),
+  origin: z.string().min(2, "Enter origin"),
+  materialsRaw: z.string().min(2, "Enter materials (comma-separated)"),
   hasRecycling: z.boolean().optional(),
   hasOrganicCert: z.boolean().optional(),
   isFairTrade: z.boolean().optional(),
@@ -35,26 +35,26 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const CATEGORIES = [
-  { value: "", label: "Выберите категорию" },
-  { value: "Одежда", label: "Одежда" },
-  { value: "Косметика", label: "Косметика" },
-  { value: "Продукты", label: "Продукты" },
-  { value: "Дом", label: "Дом и быт" },
-  { value: "Электроника", label: "Электроника" },
-  { value: "Упаковка", label: "Упаковка" },
-  { value: "Другое", label: "Другое" },
+  { value: "", label: "Select category" },
+  { value: "Одежда", label: "Clothing" },
+  { value: "Косметика", label: "Cosmetics" },
+  { value: "Продукты", label: "Food" },
+  { value: "Дом", label: "Home & Living" },
+  { value: "Электроника", label: "Electronics" },
+  { value: "Упаковка", label: "Packaging" },
+  { value: "Другое", label: "Other" },
 ];
 
 const ECO_ATTRS = [
-  { id: "hasRecycling",        label: "Из переработанного сырья",              points: "+12", icon: "♻️" },
-  { id: "hasOrganicCert",      label: "Органический сертификат",               points: "+10", icon: "🌿" },
-  { id: "hasCarbonNeutral",    label: "Углеродно-нейтральное производство",    points: "+10", icon: "🌍" },
-  { id: "isFairTrade",         label: "Fair Trade",                            points: "+8",  icon: "🤝" },
-  { id: "isVegan",             label: "Веганский продукт",                     points: "+8",  icon: "🌱" },
-  { id: "hasEnergyEfficiency", label: "Возобновляемая энергия",                points: "+8",  icon: "⚡" },
-  { id: "hasZeroWaste",        label: "Zero-Waste производство",               points: "+8",  icon: "🔄" },
-  { id: "isLocalDelivery",     label: "Локальная доставка",                    points: "+7",  icon: "📍" },
-  { id: "isDurable",           label: "Долговечный / многоразовый",            points: "+5",  icon: "💪" },
+  { id: "hasRecycling",        label: "Made from recycled materials",       points: "+12", icon: "♻️" },
+  { id: "hasOrganicCert",      label: "Organic certified",                  points: "+10", icon: "🌿" },
+  { id: "hasCarbonNeutral",    label: "Carbon-neutral production",          points: "+10", icon: "🌍" },
+  { id: "isFairTrade",         label: "Fair Trade",                         points: "+8",  icon: "🤝" },
+  { id: "isVegan",             label: "Vegan product",                      points: "+8",  icon: "🌱" },
+  { id: "hasEnergyEfficiency", label: "Renewable energy",                   points: "+8",  icon: "⚡" },
+  { id: "hasZeroWaste",        label: "Zero-Waste production",              points: "+8",  icon: "🔄" },
+  { id: "isLocalDelivery",     label: "Local delivery",                     points: "+7",  icon: "📍" },
+  { id: "isDurable",           label: "Durable / reusable",                 points: "+5",  icon: "💪" },
 ];
 
 export default function NewProductPage() {
@@ -122,7 +122,7 @@ export default function NewProductPage() {
       const fd = new FormData();
       imageFiles.forEach((f) => fd.append("files", f));
       const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
-      if (!uploadRes.ok) { setServerError("Ошибка загрузки фотографий"); return; }
+      if (!uploadRes.ok) { setServerError("Failed to upload photos"); return; }
       const { urls } = await uploadRes.json() as { urls: string[] };
       images = urls;
     }
@@ -150,7 +150,7 @@ export default function NewProductPage() {
 
     if (!res.ok) {
       const body = await res.json();
-      setServerError(body.error ?? "Ошибка создания");
+      setServerError(body.error ?? "Creation error");
       return;
     }
 
@@ -160,25 +160,25 @@ export default function NewProductPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 sm:px-6 py-10">
-      <h1 className="text-2xl font-bold text-[#0a0a0a] mb-2">Добавить товар</h1>
-      <p className="text-sm text-[#6b6b6b] mb-8">Товар будет опубликован после проверки модератором.</p>
+      <h1 className="text-2xl font-bold text-[#0a0a0a] mb-2">Add product</h1>
+      <p className="text-sm text-[#6b6b6b] mb-8">The product will be published after admin review.</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-        <Input id="title" label="Название товара *" placeholder="Напр. Бамбуковая зубная щётка" error={errors.title?.message} {...register("title")} />
-        <Textarea id="description" label="Описание *" placeholder="Расскажите о товаре, его экологических характеристиках..." error={errors.description?.message} {...register("description")} />
+        <Input id="title" label="Product name *" placeholder="e.g. Bamboo toothbrush" error={errors.title?.message} {...register("title")} />
+        <Textarea id="description" label="Description *" placeholder="Describe the product and its eco features..." error={errors.description?.message} {...register("description")} />
 
         <div className="grid grid-cols-2 gap-4">
-          <Input id="price" type="number" label="Цена (₸) *" placeholder="0" error={errors.price?.message} {...register("price", { valueAsNumber: true })} />
-          <Select id="category" label="Категория *" options={CATEGORIES} error={errors.category?.message} {...register("category")} />
+          <Input id="price" type="number" label="Price (₸) *" placeholder="0" error={errors.price?.message} {...register("price", { valueAsNumber: true })} />
+          <Select id="category" label="Category *" options={CATEGORIES} error={errors.category?.message} {...register("category")} />
         </div>
 
-        <Input id="origin" label="Происхождение / регион *" placeholder="Россия, Москва" error={errors.origin?.message} {...register("origin")} />
-        <Input id="materialsRaw" label="Материалы * (через запятую)" placeholder="Бамбук, переработанный пластик" error={errors.materialsRaw?.message} {...register("materialsRaw")} />
-        <Input id="packagingType" label="Тип упаковки" placeholder="Переработанная бумага, биоразлагаемый" {...register("packagingType")} />
+        <Input id="origin" label="Origin / region *" placeholder="Kazakhstan, Almaty" error={errors.origin?.message} {...register("origin")} />
+        <Input id="materialsRaw" label="Materials * (comma-separated)" placeholder="Bamboo, recycled plastic" error={errors.materialsRaw?.message} {...register("materialsRaw")} />
+        <Input id="packagingType" label="Packaging type" placeholder="Recycled paper, biodegradable" {...register("packagingType")} />
 
         {/* Photo upload */}
         <div>
-          <p className="text-sm font-medium text-[#0a0a0a] mb-2">Фотографии товара</p>
+          <p className="text-sm font-medium text-[#0a0a0a] mb-2">Product photos</p>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -190,8 +190,8 @@ export default function NewProductPage() {
             }`}
           >
             <Upload size={24} className="text-[#6b6b6b]" />
-            <span className="text-sm font-medium text-[#0a0a0a]">Нажмите или перетащите фото</span>
-            <span className="text-xs text-[#6b6b6b]">JPG, PNG, WEBP · до 8 фотографий</span>
+            <span className="text-sm font-medium text-[#0a0a0a]">Click or drag &amp; drop photos</span>
+            <span className="text-xs text-[#6b6b6b]">JPG, PNG, WEBP · up to 8 photos</span>
           </button>
           <input ref={fileInputRef} type="file" multiple accept="image/*" className="hidden" onChange={(e) => addFiles(e.target.files)} />
           {imagePreviews.length > 0 && (
@@ -212,8 +212,8 @@ export default function NewProductPage() {
 
         {/* Eco attributes */}
         <div className="border border-[#e5e5e5] rounded-xl p-5">
-          <p className="text-sm font-medium text-[#0a0a0a] mb-1">Экологические характеристики</p>
-          <p className="text-xs text-[#6b6b6b] mb-4">Выберите всё, что подходит — каждый пункт повышает Eco-Score</p>
+          <p className="text-sm font-medium text-[#0a0a0a] mb-1">Eco attributes</p>
+          <p className="text-xs text-[#6b6b6b] mb-4">Select all that apply — each one raises the Eco-Score</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {ECO_ATTRS.map((attr) => {
@@ -242,7 +242,7 @@ export default function NewProductPage() {
           </div>
 
           <button type="button" onClick={calcPreview} className="mt-4 text-xs font-medium text-[#0a0a0a] underline">
-            Рассчитать Eco-Score
+            Calculate Eco-Score
           </button>
 
           {previewScore !== null && (
@@ -257,7 +257,7 @@ export default function NewProductPage() {
         )}
 
         <Button type="submit" loading={isSubmitting} size="lg" className="w-full">
-          Отправить на модерацию
+          Submit for review
         </Button>
       </form>
     </div>

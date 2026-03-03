@@ -15,9 +15,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
         <nav className="p-3 flex flex-col gap-1">
           {[
-            { href: "/admin", label: "Обзор" },
-            { href: "/admin/products", label: "Товары" },
-            { href: "/admin/users", label: "Пользователи" },
+            { href: "/admin", label: "Overview" },
+            { href: "/admin/products", label: "Products" },
+            { href: "/admin/users", label: "Users" },
           ].map((link) => (
             <a
               key={link.href}
@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </a>
           ))}
           <a href="/" className="px-3 py-2 rounded-lg text-sm text-[#6b6b6b] hover:bg-[#f5f5f5] mt-auto transition-colors">
-            ← На сайт
+            ← Back to site
           </a>
         </nav>
       </aside>

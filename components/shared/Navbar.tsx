@@ -2,26 +2,34 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { useState } from "react";
-import { Leaf, Menu, X, ShoppingBag, MessageCircle, User, BarChart2, Star } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Leaf, Menu, X, ShoppingCart, User } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { CartDrawer } from "@/components/shared/CartDrawer";
+import { useCartStore } from "@/lib/store/cart";
 
 export function Navbar() {
   const { data: session } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { openCart, totalItems } = useCartStore();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const cartCount = mounted ? totalItems() : 0;
 
   const navLinks = [
-    { href: "/products", label: "Товары" },
+    { href: "/products", label: "Products" },
     ...(session
       ? [
-          { href: "/chat", label: "Чат" },
-          { href: "/rewards", label: "Награды" },
+          { href: "/chat", label: "Chat" },
+          { href: "/rewards", label: "Rewards" },
         ]
       : []),
-    ...(session?.user?.role === "ADMIN" ? [{ href: "/admin", label: "Админ" }] : []),
+    ...(session?.user?.role === "ADMIN" ? [{ href: "/admin", label: "Admin" }] : []),
   ];
 
   return (
+    <>
+    <CartDrawer />
     <header className="sticky top-0 z-40 border-b border-[#e5e5e5] bg-white/90 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
@@ -46,11 +54,24 @@ export function Navbar() {
 
           {/* Desktop auth */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Cart button */}
+            <button
+              onClick={openCart}
+              className="relative p-2 rounded-lg hover:bg-[#f5f5f5] transition-colors"
+              aria-label="Cart"
+            >
+              <ShoppingCart size={18} className="text-[#0a0a0a]" />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 rounded-full bg-green-600 text-white text-[10px] font-bold flex items-center justify-center px-0.5">
+                  {cartCount}
+                </span>
+              )}
+            </button>
             {session ? (
               <>
                 <Link href="/products/new">
                   <Button variant="outline" size="sm">
-                    + Добавить товар
+                    + Add Product
                   </Button>
                 </Link>
                 <Link href="/profile">
@@ -59,28 +80,41 @@ export function Navbar() {
                   </button>
                 </Link>
                 <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: "/" })}>
-                  Выйти
+                  Sign Out
                 </Button>
               </>
             ) : (
               <>
                 <Link href="/login">
-                  <Button variant="ghost" size="sm">Войти</Button>
+                  <Button variant="ghost" size="sm">Sign In</Button>
                 </Link>
                 <Link href="/register">
-                  <Button size="sm">Регистрация</Button>
+                  <Button size="sm">Sign Up</Button>
                 </Link>
               </>
             )}
           </div>
 
           {/* Mobile menu button */}
-          <button
-            className="md:hidden p-2 rounded-lg hover:bg-[#f5f5f5]"
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              onClick={openCart}
+              className="relative p-2 rounded-lg hover:bg-[#f5f5f5] transition-colors"
+            >
+              <ShoppingCart size={18} />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 rounded-full bg-green-600 text-white text-[10px] font-bold flex items-center justify-center px-0.5">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+            <button
+              className="p-2 rounded-lg hover:bg-[#f5f5f5]"
+              onClick={() => setMobileOpen(!mobileOpen)}
+            >
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile menu */}
@@ -99,25 +133,25 @@ export function Navbar() {
             {session ? (
               <>
                 <Link href="/profile" className="text-sm text-[#0a0a0a] py-1" onClick={() => setMobileOpen(false)}>
-                  Профиль
+                  Profile
                 </Link>
                 <Link href="/products/new" className="text-sm text-[#0a0a0a] py-1" onClick={() => setMobileOpen(false)}>
-                  + Добавить товар
+                  + Add Product
                 </Link>
                 <button
                   className="text-sm text-left text-red-600 py-1"
                   onClick={() => { signOut({ callbackUrl: "/" }); setMobileOpen(false); }}
                 >
-                  Выйти
+                  Sign Out
                 </button>
               </>
             ) : (
               <>
                 <Link href="/login" className="text-sm text-[#0a0a0a] py-1" onClick={() => setMobileOpen(false)}>
-                  Войти
+                  Sign In
                 </Link>
                 <Link href="/register" className="text-sm text-[#0a0a0a] py-1" onClick={() => setMobileOpen(false)}>
-                  Регистрация
+                  Sign Up
                 </Link>
               </>
             )}
@@ -125,5 +159,6 @@ export function Navbar() {
         )}
       </div>
     </header>
+    </>
   );
 }

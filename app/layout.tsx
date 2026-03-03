@@ -10,10 +10,10 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "EcoMarket — Экологичные товары",
+  title: "EcoMarket — Eco-friendly products",
   description:
-    "Платформа для осознанных покупок: переработанные, устойчивые и eco-friendly товары от местных производителей.",
-  keywords: ["экология", "eco-friendly", "устойчивое потребление", "зелёные покупки"],
+    "A platform for conscious shopping: recycled, sustainable and eco-friendly products from local producers.",
+  keywords: ["ecology", "eco-friendly", "sustainable consumption", "green shopping"],
 };
 
 export default async function RootLayout({
