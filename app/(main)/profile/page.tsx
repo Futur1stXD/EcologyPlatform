@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { EcoScoreBadge } from "@/components/products/EcoScoreBadge";
 import { BalanceTopupWidget } from "@/components/profile/BalanceTopupWidget";
 import { SubscriptionBilling } from "@/components/profile/SubscriptionBilling";
+import { DeleteProductButton } from "@/components/products/DeleteProductButton";
 
 // Always read fresh data — subscription/balance change after Stripe redirects
 export const dynamic = "force-dynamic";
@@ -251,6 +252,7 @@ export default async function ProfilePage() {
                     <Link href={`/products/${p.id}`} className="text-xs text-[#6b6b6b] hover:text-[#0a0a0a]">
                       View
                     </Link>
+                    <DeleteProductButton productId={p.id} redirectTo="/profile" compact />
                   </div>
                 </div>
               )

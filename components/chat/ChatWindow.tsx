@@ -44,10 +44,14 @@ export function ChatWindow({ roomId, initialMessages, otherUser }: ChatWindowPro
   // Poll for new messages every 3 seconds
   useEffect(() => {
     const interval = setInterval(async () => {
-      const res = await fetch(`/api/chat/${roomId}/messages`);
-      if (res.ok) {
-        const data = await res.json();
-        setMessages(data);
+      try {
+        const res = await fetch(`/api/chat/${roomId}/messages`);
+        if (res.ok) {
+          const data = await res.json();
+          setMessages(data);
+        }
+      } catch {
+        // silently ignore transient network errors
       }
     }, 3000);
     return () => clearInterval(interval);
