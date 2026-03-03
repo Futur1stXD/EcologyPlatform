@@ -10,19 +10,30 @@ export default function HomePage() {
       <Navbar />
       <main>
         {/* Hero */}
-        <section className="border-b border-[#e5e5e5]">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-24 md:py-36">
+        <section className="relative border-b border-[#e5e5e5] overflow-hidden">
+          {/* Background image */}
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1448375240586-882707db888b?w=1800&q=80&fit=crop')",
+            }}
+          />
+          {/* Dark gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/20" />
+
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-28 md:py-44">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#e5e5e5] px-3 py-1 text-xs text-[#6b6b6b] mb-6">
-                <Leaf size={12} className="text-green-600" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 backdrop-blur-sm px-3 py-1 text-xs text-white/90 mb-6">
+                <Leaf size={12} className="text-green-400" />
                 Осознанное потребление
               </div>
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-[#0a0a0a] leading-tight mb-5">
+              <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white leading-tight mb-5">
                 Eco-товары от
                 <br />
-                <span className="italic font-light">местных производителей</span>
+                <span className="italic font-light text-green-300">местных производителей</span>
               </h1>
-              <p className="text-lg text-[#6b6b6b] leading-relaxed mb-8 max-w-lg">
+              <p className="text-lg text-white/80 leading-relaxed mb-8 max-w-lg">
                 Находите переработанные, биоразлагаемые и устойчивые продукты с прозрачным
                 Eco-Score. Поддерживайте производителей, которые заботятся о планете.
               </p>
@@ -31,7 +42,7 @@ export default function HomePage() {
                   <Button size="lg">Смотреть товары</Button>
                 </Link>
                 <Link href="/register">
-                  <Button variant="outline" size="lg">Стать продавцом</Button>
+                  <Button variant="outline" size="lg" className="border-white/50 text-white hover:bg-white/10">Стать продавцом</Button>
                 </Link>
               </div>
             </div>

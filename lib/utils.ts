@@ -6,9 +6,10 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatPrice(price: number): string {
-  return new Intl.NumberFormat("ru-RU", {
+  return new Intl.NumberFormat("kk-KZ", {
     style: "currency",
-    currency: "RUB",
+    currency: "KZT",
+    maximumFractionDigits: 0,
   }).format(price);
 }
 

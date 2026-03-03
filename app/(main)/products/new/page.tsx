@@ -23,6 +23,12 @@ const schema = z.object({
   hasRecycling: z.boolean().optional(),
   hasOrganicCert: z.boolean().optional(),
   isFairTrade: z.boolean().optional(),
+  isVegan: z.boolean().optional(),
+  isLocalDelivery: z.boolean().optional(),
+  hasCarbonNeutral: z.boolean().optional(),
+  hasEnergyEfficiency: z.boolean().optional(),
+  hasZeroWaste: z.boolean().optional(),
+  isDurable: z.boolean().optional(),
   packagingType: z.string().optional(),
 });
 
@@ -51,10 +57,10 @@ export default function NewProductPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
-  const watchedFields = watch(["materialsRaw", "origin", "hasRecycling", "hasOrganicCert", "isFairTrade", "packagingType"]);
+  const watchedFields = watch(["materialsRaw", "origin", "hasRecycling", "hasOrganicCert", "isFairTrade", "packagingType", "isVegan", "isLocalDelivery", "hasCarbonNeutral", "hasEnergyEfficiency", "hasZeroWaste", "isDurable"]);
 
   const calcPreview = () => {
-    const [materialsRaw, origin, hasRecycling, hasOrganicCert, isFairTrade, packagingType] = watchedFields;
+    const [materialsRaw, origin, hasRecycling, hasOrganicCert, isFairTrade, packagingType, isVegan, isLocalDelivery, hasCarbonNeutral, hasEnergyEfficiency, hasZeroWaste, isDurable] = watchedFields;
     const materials = (materialsRaw ?? "").split(",").map((s) => s.trim()).filter(Boolean);
     const score = calculateEcoScore({
       materials,
@@ -63,6 +69,12 @@ export default function NewProductPage() {
       hasOrganicCert: !!hasOrganicCert,
       isFairTrade: !!isFairTrade,
       packagingType: packagingType ?? "",
+      isVegan: !!isVegan,
+      isLocalDelivery: !!isLocalDelivery,
+      hasCarbonNeutral: !!hasCarbonNeutral,
+      hasEnergyEfficiency: !!hasEnergyEfficiency,
+      hasZeroWaste: !!hasZeroWaste,
+      isDurable: !!isDurable,
     });
     setPreviewScore(score);
   };
@@ -79,6 +91,12 @@ export default function NewProductPage() {
       hasOrganicCert: !!data.hasOrganicCert,
       isFairTrade: !!data.isFairTrade,
       packagingType: data.packagingType ?? "",
+      isVegan: !!data.isVegan,
+      isLocalDelivery: !!data.isLocalDelivery,
+      hasCarbonNeutral: !!data.hasCarbonNeutral,
+      hasEnergyEfficiency: !!data.hasEnergyEfficiency,
+      hasZeroWaste: !!data.hasZeroWaste,
+      isDurable: !!data.isDurable,
     });
 
     const res = await fetch("/api/products", {
@@ -107,7 +125,7 @@ export default function NewProductPage() {
         <Textarea id="description" label="Описание *" placeholder="Расскажите о товаре, его экологических характеристиках..." error={errors.description?.message} {...register("description")} />
 
         <div className="grid grid-cols-2 gap-4">
-          <Input id="price" type="number" label="Цена (₽) *" placeholder="0" error={errors.price?.message} {...register("price", { valueAsNumber: true })} />
+          <Input id="price" type="number" label="Цена (₸) *" placeholder="0" error={errors.price?.message} {...register("price", { valueAsNumber: true })} />
           <Select id="category" label="Категория *" options={CATEGORIES} error={errors.category?.message} {...register("category")} />
         </div>
 
@@ -118,21 +136,30 @@ export default function NewProductPage() {
 
         {/* Eco attributes */}
         <div className="border border-[#e5e5e5] rounded-xl p-4">
-          <p className="text-sm font-medium text-[#0a0a0a] mb-3">Экологические сертификаты</p>
-          <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium text-[#0a0a0a] mb-1">Экологические характеристики</p>
+          <p className="text-xs text-[#6b6b6b] mb-4">Каждый пункт повышает Eco-Score товара</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
             {[
-              { id: "hasRecycling", label: "Товар из переработанного сырья" },
-              { id: "hasOrganicCert", label: "Органический сертификат" },
-              { id: "isFairTrade", label: "Fair Trade" },
+              { id: "hasRecycling",       label: "Из переработанного сырья",         points: "+12" },
+              { id: "hasOrganicCert",     label: "Органический сертификат",           points: "+10" },
+              { id: "hasCarbonNeutral",   label: "Углеродно-нейтральное производство",points: "+10" },
+              { id: "isFairTrade",        label: "Fair Trade",                        points: "+8"  },
+              { id: "isVegan",            label: "Веганский продукт",                 points: "+8"  },
+              { id: "hasEnergyEfficiency",label: "Возобновляемая энергия при производстве", points: "+8" },
+              { id: "hasZeroWaste",       label: "Zero-Waste производство",           points: "+8"  },
+              { id: "isLocalDelivery",    label: "Локальная доставка (меньше выбросов)", points: "+7" },
+              { id: "isDurable",          label: "Долговечный / многоразовый товар",  points: "+5"  },
             ].map((attr) => (
-              <label key={attr.id} className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="rounded" {...register(attr.id as keyof FormData)} />
-                <span className="text-sm text-[#0a0a0a]">{attr.label}</span>
+              <label key={attr.id} className="flex items-center gap-2 cursor-pointer group">
+                <input type="checkbox" className="rounded accent-green-600" {...register(attr.id as keyof FormData)} />
+                <span className="text-sm text-[#0a0a0a] flex-1">{attr.label}</span>
+                <span className="text-xs text-green-600 font-medium">{attr.points}</span>
               </label>
             ))}
           </div>
 
-          <button type="button" onClick={calcPreview} className="mt-3 text-xs text-[#6b6b6b] underline">
+          <button type="button" onClick={calcPreview} className="mt-4 text-xs font-medium text-[#0a0a0a] underline">
             Рассчитать Eco-Score
           </button>
 

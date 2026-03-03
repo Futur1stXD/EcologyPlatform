@@ -15,27 +15,55 @@ export function calculateEcoScore(params: {
   hasOrganicCert: boolean;
   isFairTrade: boolean;
   packagingType: string;
+  isVegan?: boolean;
+  isLocalDelivery?: boolean;
+  hasCarbonNeutral?: boolean;
+  hasEnergyEfficiency?: boolean;
+  hasZeroWaste?: boolean;
+  isDurable?: boolean;
 }): number {
-  let score = 30;
+  let score = 10; // base
 
-  const ecoMaterials = ["бамбук", "конопля", "переработанный пластик", "органический хлопок", "пробка", "лён"];
+  // Materials — expanded list, partial match, up to 3 matches × 10 = 30
+  const ecoMaterials = [
+    "бамбук", "конопля", "переработан", "органическ", "пробка",
+    "лён", "льнян", "джут", "сизаль", "шерсть", "натуральн",
+    "биоразлагаем", "кукурузн", "соев", "водоросл", "тростник",
+    "хлопок", "кокос", "cork", "bamboo", "hemp", "recycled",
+    "organic", "linen", "jute", "seaweed",
+  ];
   const ecoMatches = params.materials.filter((m) =>
     ecoMaterials.some((em) => m.toLowerCase().includes(em))
   ).length;
-  score += Math.min(ecoMatches * 15, 30);
+  score += Math.min(ecoMatches * 10, 30);
 
-  if (params.hasRecycling) score += 15;
-  if (params.hasOrganicCert) score += 10;
-  if (params.isFairTrade) score += 10;
+  // Certifications & practices
+  if (params.hasRecycling)       score += 12;
+  if (params.hasOrganicCert)     score += 10;
+  if (params.isFairTrade)        score += 8;
+  if (params.isVegan)            score += 8;
+  if (params.hasCarbonNeutral)   score += 10;
+  if (params.hasEnergyEfficiency) score += 8;
+  if (params.hasZeroWaste)       score += 8;
+  if (params.isDurable)          score += 5;
+  if (params.isLocalDelivery)    score += 7;
 
-  const localOrigins = ["россия", "местный", "regional"];
+  // Local / regional origin
+  const localOrigins = [
+    "казахстан", "алматы", "астана", "шымкент", "местн", "regional",
+    "россия", "беларус", "кыргызстан", "узбекистан",
+  ];
   if (localOrigins.some((o) => params.origin.toLowerCase().includes(o))) {
-    score += 10;
+    score += 8;
   }
 
-  const ecoPacking = ["переработанная бумага", "без упаковки", "биоразлагаемый"];
+  // Eco packaging
+  const ecoPacking = [
+    "переработанн", "без упаковки", "биоразлагаем", "картон",
+    "бумаг", "компостируем", "многоразов", "recycled", "biodegradable",
+  ];
   if (ecoPacking.some((p) => params.packagingType.toLowerCase().includes(p))) {
-    score += 5;
+    score += 8;
   }
 
   return Math.min(score, 100);

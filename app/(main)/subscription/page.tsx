@@ -35,7 +35,7 @@ export default function SubscriptionPage() {
         {/* Free */}
         <div className="border border-[#e5e5e5] rounded-2xl p-6">
           <p className="text-xs font-medium text-[#a3a3a3] uppercase tracking-wide mb-3">Бесплатно</p>
-          <p className="text-3xl font-bold text-[#0a0a0a] mb-1">₽0</p>
+          <p className="text-3xl font-bold text-[#0a0a0a] mb-1">₸0</p>
           <p className="text-sm text-[#6b6b6b] mb-6">/ месяц</p>
 
           <ul className="space-y-2 mb-6">
@@ -70,7 +70,7 @@ export default function SubscriptionPage() {
           </div>
 
           <p className="text-xs font-medium text-[#a3a3a3] uppercase tracking-wide mb-3">Premium</p>
-          <p className="text-3xl font-bold text-[#0a0a0a] mb-1">₽1 990</p>
+          <p className="text-3xl font-bold text-[#0a0a0a] mb-1">₸9 990</p>
           <p className="text-sm text-[#6b6b6b] mb-6">/ месяц</p>
 
           <ul className="space-y-2 mb-6">
