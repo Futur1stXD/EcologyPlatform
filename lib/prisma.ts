@@ -9,6 +9,9 @@ function createPrismaClient() {
   const pool = new Pool({
     connectionString: process.env.POSTGRES_PRISMA_URL!,
     ssl: { rejectUnauthorized: false },
+    max: 1, // serverless: one connection per function instance
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
   });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
@@ -20,4 +23,5 @@ const globalForPrisma = globalThis as unknown as {
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+// Cache in all environments so warm serverless instances reuse the connection
+globalForPrisma.prisma = prisma;
