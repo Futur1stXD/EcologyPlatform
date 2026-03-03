@@ -21,10 +21,14 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
   const [balance, setBalance] = useState<number | null>(null);
   const [cashbackBalance, setCashbackBalance] = useState<number>(0);
   const [useCashback, setUseCashback] = useState(false);
+  const [ecoPoints, setEcoPoints] = useState<number>(0);
+  const [useEcoPoints, setUseEcoPoints] = useState(false);
   const cashbackEarned = Math.round(price * 0.05 * 100) / 100;
 
   const cashbackApplied = useCashback ? Math.min(cashbackBalance, price) : 0;
-  const effectivePrice = Math.round((price - cashbackApplied) * 100) / 100;
+  const priceAfterCashback = Math.round((price - cashbackApplied) * 100) / 100;
+  const ecoPointsApplied = useEcoPoints ? Math.min(ecoPoints, priceAfterCashback) : 0;
+  const effectivePrice = Math.round((priceAfterCashback - ecoPointsApplied) * 100) / 100;
 
   useEffect(() => {
     if (!session) return;
@@ -34,6 +38,10 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
         if (typeof d.balance === "number") setBalance(d.balance);
         if (typeof d.cashbackBalance === "number") setCashbackBalance(d.cashbackBalance);
       })
+      .catch(() => {});
+    fetch("/api/rewards")
+      .then((r) => r.json())
+      .then((d) => { if (typeof d.ecoPoints === "number") setEcoPoints(d.ecoPoints); })
       .catch(() => {});
   }, [session]);
 
@@ -89,7 +97,7 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
       const res = await fetch("/api/payments/buy-with-balance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, useCashback }),
+        body: JSON.stringify({ productId, useCashback, useEcoPoints }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -98,6 +106,7 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
       }
       const parts: string[] = [];
       if (data.cashbackApplied > 0) parts.push(`-${data.cashbackApplied.toLocaleString("ru-KZ")} ₸ cashback`);
+      if (data.ecoPointsApplied > 0) parts.push(`-${Math.round(data.ecoPointsApplied)} pts eco`);
       parts.push(`+${data.cashback.toLocaleString("ru-KZ")} ₸ new cashback`);
       toast.success("Purchase successful!", parts.join(" · "));
       router.push(`/products/${productId}?purchased=true`);
