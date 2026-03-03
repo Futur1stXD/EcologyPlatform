@@ -13,14 +13,24 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { openCart, totalItems } = useCartStore();
   const [mounted, setMounted] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   useEffect(() => setMounted(true), []);
   const cartCount = mounted ? totalItems() : 0;
+
+  useEffect(() => {
+    if (!session) return;
+    const fetchUnread = () =>
+      fetch("/api/chat/unread").then(r => r.ok ? r.json() : null).then(d => d && setUnreadCount(d.count));
+    fetchUnread();
+    const id = setInterval(fetchUnread, 15000);
+    return () => clearInterval(id);
+  }, [session]);
 
   const navLinks = [
     { href: "/products", label: "Products" },
     ...(session
       ? [
-          { href: "/chat", label: "Chat" },
+          { href: "/chat", label: "Chat", badge: unreadCount },
           { href: "/rewards", label: "Rewards" },
         ]
       : []),
@@ -47,9 +57,14 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm text-[#6b6b6b] hover:text-[#0a0a0a] transition-colors"
+                className="relative text-sm text-[#6b6b6b] hover:text-[#0a0a0a] transition-colors"
               >
                 {link.label}
+                {"badge" in link && (link as { badge: number }).badge > 0 && (
+                  <span className="absolute -top-2 -right-3 h-4 min-w-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center px-1">
+                    {(link as { badge: number }).badge > 9 ? "9+" : (link as { badge: number }).badge}
+                  </span>
+                )}
               </Link>
             ))}
           </nav>
@@ -111,10 +126,13 @@ export function Navbar() {
               )}
             </button>
             <button
-              className="p-2 rounded-lg hover:bg-[#f5f5f5]"
+              className="relative p-2 rounded-lg hover:bg-[#f5f5f5]"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
               {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+              {!mobileOpen && unreadCount > 0 && (
+                <span className="absolute top-0.5 right-0.5 h-3.5 w-3.5 rounded-full bg-red-500 border-2 border-white" />
+              )}
             </button>
           </div>
         </div>
@@ -126,10 +144,15 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm text-[#0a0a0a] py-1"
+                className="relative inline-flex items-center gap-2 text-sm text-[#0a0a0a] py-1 w-fit"
                 onClick={() => setMobileOpen(false)}
               >
                 {link.label}
+                {"badge" in link && (link as { badge: number }).badge > 0 && (
+                  <span className="h-4 min-w-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center px-1">
+                    {(link as { badge: number }).badge > 9 ? "9+" : (link as { badge: number }).badge}
+                  </span>
+                )}
               </Link>
             ))}
             {session ? (
