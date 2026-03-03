@@ -1,0 +1,70 @@
+import { NextRequest, NextResponse } from "next/server";
+import { stripe } from "@/lib/stripe";
+import { prisma } from "@/lib/prisma";
+import Stripe from "stripe";
+
+export async function POST(req: NextRequest) {
+  const body = await req.text();
+  const signature = req.headers.get("stripe-signature")!;
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
+  } catch {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  }
+
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const userId = session.metadata?.userId;
+      if (!userId) break;
+
+      const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+
+      await prisma.subscription.upsert({
+        where: { userId },
+        update: {
+          plan: "PREMIUM",
+          stripeSubId: sub.id,
+          currentPeriodEnd: new Date((sub as unknown as { current_period_end: number }).current_period_end * 1000),
+        },
+        create: {
+          userId,
+          plan: "PREMIUM",
+          stripeCustomerId: session.customer as string,
+          stripeSubId: sub.id,
+          currentPeriodEnd: new Date((sub as unknown as { current_period_end: number }).current_period_end * 1000),
+        },
+      });
+      break;
+    }
+
+    case "customer.subscription.deleted": {
+      const sub = event.data.object as Stripe.Subscription;
+      await prisma.subscription.updateMany({
+        where: { stripeSubId: sub.id },
+        data: { plan: "FREE", stripeSubId: null, currentPeriodEnd: null },
+      });
+      break;
+    }
+
+    case "invoice.payment_succeeded": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const subId = (invoice as unknown as { subscription: string }).subscription;
+      if (!subId) break;
+
+      const stripeSub = await stripe.subscriptions.retrieve(subId);
+
+      await prisma.subscription.updateMany({
+        where: { stripeSubId: subId },
+        data: {
+          currentPeriodEnd: new Date((stripeSub as unknown as { current_period_end: number }).current_period_end * 1000),
+        },
+      });
+      break;
+    }
+  }
+
+  return NextResponse.json({ received: true });
+}

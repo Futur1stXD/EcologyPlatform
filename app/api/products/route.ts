@@ -1,0 +1,89 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+const productSchema = z.object({
+  title: z.string().min(3),
+  description: z.string().min(10),
+  price: z.number().positive(),
+  images: z.array(z.string().url()).default([]),
+  category: z.string(),
+  materials: z.array(z.string()).default([]),
+  origin: z.string(),
+  ecoScore: z.number().min(1).max(100),
+});
+
+// GET /api/products — list with filtering
+export async function GET(req: NextRequest) {
+  const { searchParams } = req.nextUrl;
+
+  const category = searchParams.get("category");
+  const search = searchParams.get("search");
+  const minEcoScore = searchParams.get("minEcoScore");
+  const sort = searchParams.get("sort") ?? "newest";
+  const page = parseInt(searchParams.get("page") ?? "1");
+  const limit = 12;
+
+  const where = {
+    status: "APPROVED" as const,
+    ...(category && { category }),
+    ...(search && {
+      OR: [
+        { title: { contains: search, mode: "insensitive" as const } },
+        { description: { contains: search, mode: "insensitive" as const } },
+      ],
+    }),
+    ...(minEcoScore && { ecoScore: { gte: parseInt(minEcoScore) } }),
+  };
+
+  const orderBy = {
+    newest: { createdAt: "desc" as const },
+    price_asc: { price: "asc" as const },
+    price_desc: { price: "desc" as const },
+    eco_score: { ecoScore: "desc" as const },
+  }[sort] ?? { createdAt: "desc" as const };
+
+  const [products, total] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      orderBy: [{ isFeatured: "desc" }, orderBy],
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        seller: {
+          select: { id: true, name: true, image: true, subscription: { select: { plan: true, currentPeriodEnd: true } } },
+        },
+        reviews: { select: { rating: true } },
+      },
+    }),
+    prisma.product.count({ where }),
+  ]);
+
+  return NextResponse.json({ products, total, pages: Math.ceil(total / limit) });
+}
+
+// POST /api/products — create
+export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!["SELLER", "ADMIN"].includes(session.user.role)) {
+    return NextResponse.json({ error: "Только продавцы могут добавлять товары" }, { status: 403 });
+  }
+
+  try {
+    const body = await req.json();
+    const data = productSchema.parse(body);
+
+    const product = await prisma.product.create({
+      data: { ...data, sellerId: session.user.id, status: "PENDING" },
+    });
+
+    return NextResponse.json(product, { status: 201 });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.issues[0].message }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 });
+  }
+}

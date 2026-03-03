@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  SELLER
+  ADMIN
+}
+
+enum SubscriptionPlan {
+  FREE
+  PREMIUM
+}
+
+enum ProductStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum BadgeType {
+  GREEN_BUYER
+  ECO_HERO
+  FIRST_PURCHASE
+  TEN_PURCHASES
+  HUNDRED_POINTS
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(USER)
+  bio           String?
+  ecoPoints     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts          Account[]
+  sessions          Session[]
+  products          Product[]
+  reviews           Review[]
+  sentMessages      Message[]     @relation("SentMessages")
+  chatRoomsAsBuyer  ChatRoom[]    @relation("BuyerChats")
+  chatRoomsAsSeller ChatRoom[]    @relation("SellerChats")
+  subscription      Subscription?
+  badges            UserBadge[]
+  orders            Order[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  images      String[]
+  category    String
+  materials   String[]
+  origin      String
+  ecoScore    Int
+  status      ProductStatus @default(PENDING)
+  isFeatured  Boolean       @default(false)
+  sellerId    String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  seller     User        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  reviews    Review[]
+  orderItems OrderItem[]
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String
+  productId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, userId])
+}
+
+model ChatRoom {
+  id        String   @id @default(cuid())
+  buyerId   String
+  sellerId  String
+  productId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  buyer    User      @relation("BuyerChats", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller   User      @relation("SellerChats", fields: [sellerId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([buyerId, sellerId])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  content    String
+  chatRoomId String
+  senderId   String
+  createdAt  DateTime @default(now())
+  read       Boolean  @default(false)
+
+  chatRoom ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  sender   User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id               String           @id @default(cuid())
+  userId           String           @unique
+  plan             SubscriptionPlan @default(FREE)
+  stripeCustomerId String?          @unique
+  stripeSubId      String?          @unique
+  currentPeriodEnd DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id         String      @id @default(cuid())
+  userId     String
+  totalPrice Float
+  createdAt  DateTime    @default(now())
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items OrderItem[]
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model UserBadge {
+  id        String    @id @default(cuid())
+  userId    String
+  badge     BadgeType
+  awardedAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badge])
+}
