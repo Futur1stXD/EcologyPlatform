@@ -34,10 +34,12 @@ export function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-semibold text-[#0a0a0a]">
-            <Leaf size={20} className="text-green-600" />
-            <span className="text-lg tracking-tight">EcoMarket</span>
-          </Link>
+          <div className="flex-1">
+            <Link href="/" className="flex items-center gap-2 font-semibold text-[#0a0a0a] w-fit">
+              <Leaf size={20} className="text-green-600" />
+              <span className="text-lg tracking-tight">EcoMarket</span>
+            </Link>
+          </div>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6">
@@ -53,7 +55,7 @@ export function Navbar() {
           </nav>
 
           {/* Desktop auth */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex flex-1 items-center justify-end gap-3">
             {/* Cart button */}
             <button
               onClick={openCart}
