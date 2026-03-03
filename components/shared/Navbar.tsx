@@ -76,7 +76,7 @@ export function Navbar() {
                 </Link>
                 <Link href="/profile">
                   <button className="h-8 w-8 rounded-full bg-[#0a0a0a] text-white text-xs font-medium flex items-center justify-center">
-                    {session.user.name?.[0]?.toUpperCase() ?? "U"}
+                    {session?.user?.name?.[0]?.toUpperCase() ?? "U"}
                   </button>
                 </Link>
                 <Button variant="ghost" size="sm" onClick={() => signOut({ callbackUrl: "/" })}>
