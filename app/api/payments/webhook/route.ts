@@ -45,6 +45,10 @@ export async function POST(req: NextRequest) {
             },
           }),
         ]);
+
+        // Award eco-points for top-up (1 pt per 100 ₸)
+        const { rewardTopup } = await import("@/lib/gamification");
+        await rewardTopup(userId, amount);
         break;
       }
 

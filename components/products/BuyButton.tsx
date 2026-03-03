@@ -20,11 +20,15 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
   const [loadingBalance, setLoadingBalance] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
   const [cashbackBalance, setCashbackBalance] = useState<number>(0);
+  const [ecoPoints, setEcoPoints] = useState<number>(0);
   const [useCashback, setUseCashback] = useState(false);
+  const [useEcoPoints, setUseEcoPoints] = useState(false);
   const cashbackEarned = Math.round(price * 0.05 * 100) / 100;
 
   const cashbackApplied = useCashback ? Math.min(cashbackBalance, price) : 0;
-  const effectivePrice = Math.round((price - cashbackApplied) * 100) / 100;
+  const priceAfterCashback = Math.round((price - cashbackApplied) * 100) / 100;
+  const ecoPointsApplied = useEcoPoints ? Math.min(ecoPoints, priceAfterCashback) : 0;
+  const effectivePrice = Math.round((priceAfterCashback - ecoPointsApplied) * 100) / 100;
 
   useEffect(() => {
     if (!session) return;
@@ -33,6 +37,7 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
       .then((d) => {
         if (typeof d.balance === "number") setBalance(d.balance);
         if (typeof d.cashbackBalance === "number") setCashbackBalance(d.cashbackBalance);
+        if (typeof d.ecoPoints === "number") setEcoPoints(d.ecoPoints);
       })
       .catch(() => {});
   }, [session]);
@@ -89,17 +94,18 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
       const res = await fetch("/api/payments/buy-with-balance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, useCashback }),
+        body: JSON.stringify({ productId, useCashback, useEcoPoints }),
       });
       const data = await res.json();
       if (!res.ok) {
         toast.error("Purchase failed", data.error ?? "Could not complete purchase");
         return;
       }
-      const msg = data.cashbackApplied > 0
-        ? `Saved ${data.cashbackApplied.toLocaleString("ru-KZ")} ₸ with cashback · +${data.cashback.toLocaleString("ru-KZ")} ₸ new cashback`
-        : `+${data.cashback.toLocaleString("ru-KZ")} ₸ cashback added`;
-      toast.success("Purchase successful!", msg);
+      const parts: string[] = [];
+      if (data.cashbackApplied > 0) parts.push(`-${data.cashbackApplied.toLocaleString("ru-KZ")} ₸ cashback`);
+      if (data.ecoPointsApplied > 0) parts.push(`-${Math.round(data.ecoPointsApplied)} pts`);
+      parts.push(`+${data.cashback.toLocaleString("ru-KZ")} ₸ new cashback`);
+      toast.success("Purchase successful!", parts.join(" · "));
       router.push(`/products/${productId}?purchased=true`);
       router.refresh();
     } catch {
@@ -141,9 +147,29 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
                   {cashbackBalance.toLocaleString("ru-KZ")} ₸
                 </span>
                 {useCashback && cashbackApplied > 0 && (
-                  <span className="text-[#6b6b6b]">
-                    {" "}→ saves {cashbackApplied.toLocaleString("ru-KZ")} ₸
-                  </span>
+                  <span className="text-[#6b6b6b]"> → -{cashbackApplied.toLocaleString("ru-KZ")} ₸</span>
+                )}
+              </span>
+            </label>
+          )}
+
+          {/* Eco-points toggle */}
+          {ecoPoints > 0 && (
+            <label className="flex items-center gap-2 cursor-pointer px-1 py-1">
+              <input
+                type="checkbox"
+                checked={useEcoPoints}
+                onChange={(e) => setUseEcoPoints(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 accent-yellow-500"
+              />
+              <span className="text-sm text-[#0a0a0a]">
+                Use eco-points{" "}
+                <span className="font-semibold text-yellow-600">
+                  {ecoPoints} pts
+                </span>
+                <span className="text-[#a3a3a3]"> (1 pt = 1 ₸)</span>
+                {useEcoPoints && ecoPointsApplied > 0 && (
+                  <span className="text-[#6b6b6b]"> → -{Math.round(ecoPointsApplied).toLocaleString("ru-KZ")} ₸</span>
                 )}
               </span>
             </label>
@@ -161,7 +187,7 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
               : balance === null
               ? "Pay with Balance"
               : hasSufficientBalance
-              ? useCashback && cashbackApplied > 0
+              ? effectivePrice < price
                 ? `Pay ${effectivePrice.toLocaleString("ru-KZ")} ₸ (Balance)`
                 : `Pay with Balance (₸${balance.toLocaleString("ru-KZ")})`
               : `Insufficient balance (₸${(balance ?? 0).toLocaleString("ru-KZ")})`}

@@ -78,12 +78,30 @@ export default async function RewardsPage() {
         <div className="space-y-2">
           {[
             { action: "Make a purchase", points: "+20 pts" },
+            { action: "Top up balance", points: "+1 pt per 100 ₸" },
             { action: "Leave a review", points: "+5 pts (soon)" },
             { action: "Invite a friend", points: "+50 pts (soon)" },
           ].map((item) => (
             <div key={item.action} className="flex items-center justify-between text-sm">
               <span className="text-[#6b6b6b]">{item.action}</span>
               <span className="font-medium text-[#0a0a0a]">{item.points}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* How to spend */}
+      <div className="border border-yellow-200 bg-yellow-50 rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[#0a0a0a] mb-1">💡 How to spend points</h2>
+        <p className="text-sm text-[#6b6b6b] mb-3">1 eco-point = 1 ₸ discount — apply at checkout</p>
+        <div className="space-y-2">
+          {[
+            { where: "Product page", how: "Enable «Use eco-points» before paying with balance" },
+            { where: "Cart", how: "Enable «Use eco-points» in the order summary" },
+          ].map((item) => (
+            <div key={item.where} className="flex gap-2 text-sm">
+              <span className="font-medium text-yellow-700 shrink-0">{item.where}:</span>
+              <span className="text-[#6b6b6b]">{item.how}</span>
             </div>
           ))}
         </div>
