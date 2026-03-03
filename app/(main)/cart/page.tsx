@@ -297,26 +297,6 @@ export default function CartPage() {
                     </label>
                   )}
 
-                  {/* Eco-points toggle */}
-                  {ecoPoints > 0 && (
-                    <label className="mt-2 flex items-center gap-2 cursor-pointer text-sm px-1">
-                      <input
-                        type="checkbox"
-                        checked={useEcoPoints}
-                        onChange={(e) => setUseEcoPoints(e.target.checked)}
-                        className="h-4 w-4 rounded border-gray-300 accent-yellow-500"
-                      />
-                      <span className="text-[#0a0a0a]">
-                        Use eco-points{" "}
-                        <span className="font-semibold text-yellow-600">{ecoPoints} pts</span>
-                        <span className="text-[#a3a3a3]"> (1 pt = 1 ₸)</span>
-                        {useEcoPoints && (
-                          <span className="text-[#6b6b6b]"> → -{Math.min(ecoPoints, Math.max(0, totalPrice() - (useCashback ? Math.min(cashbackBalance, totalPrice()) : 0))).toLocaleString("ru-KZ")} ₸</span>
-                        )}
-                      </span>
-                    </label>
-                  )}
-
                   {useCashback && cashbackBalance > 0 ? (
                     <div className="mt-2 flex justify-between text-sm font-bold text-green-700">
                       <span>To pay</span>
