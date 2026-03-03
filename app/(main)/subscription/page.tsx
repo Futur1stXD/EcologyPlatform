@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, Suspense, useMemo } from "react";
+import { useState, useEffect, useRef, Suspense, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
@@ -25,11 +25,13 @@ export default function SubscriptionPage() {
 function SubscriptionContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [apiMessage, setApiMessage] = useState("");
   const [stats, setStats] = useState<ListingStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  const verifiedRef = useRef(false);
 
   const paramMessage = useMemo(() => {
     if (searchParams.get("success") === "true") return "✅ Subscription activated! Thank you.";
@@ -38,10 +40,10 @@ function SubscriptionContent() {
   }, [searchParams]);
 
   const message = apiMessage || paramMessage;
-  // statsLoading only relevant when session exists
   const isLoadingStats = statsLoading && !!session;
 
-  useEffect(() => {
+  // Fetch listing stats
+  const fetchStats = () => {
     if (!session) return;
     fetch("/api/profile/listing-stats")
       .then((r) => r.ok ? r.json() : null)
@@ -49,7 +51,29 @@ function SubscriptionContent() {
         setStats(data);
         setStatsLoading(false);
       });
-  }, [session]);
+  };
+
+  useEffect(() => { fetchStats(); }, [session]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Verify subscription after Stripe redirects back with ?success=true&session_id=...
+  useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    const isSuccess = searchParams.get("success") === "true";
+    if (!sessionId || !isSuccess || !session || verifiedRef.current) return;
+    verifiedRef.current = true;
+
+    fetch("/api/payments/verify-subscription", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    }).then(async (res) => {
+      if (res.ok) {
+        // Remove session_id from URL, refresh stats
+        router.replace("/subscription?success=true");
+        fetchStats();
+      }
+    });
+  }, [searchParams, session]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const subscribe = async () => {
     setLoading(true);
