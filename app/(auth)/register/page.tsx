@@ -23,7 +23,7 @@ const schema = z.object({
     .regex(/[a-z]/, "Must contain a lowercase letter")
     .regex(/[0-9]/, "Must contain a number")
     .regex(/[^A-Za-z0-9]/, "Must contain a special character"),
-  role: z.enum(["USER", "SELLER"]).default("USER"),
+  role: z.enum(["USER", "SELLER"]),
 });
 
 type FormData = z.infer<typeof schema>;
