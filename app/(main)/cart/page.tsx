@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/utils";
 import { toast } from "@/lib/store/toast";
 
-export default function CartPage() {
+function CartContent() {
   const { items, removeItem, updateQuantity, clearCart, totalPrice, totalItems } = useCartStore();
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
@@ -330,5 +330,13 @@ export default function CartPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CartPage() {
+  return (
+    <Suspense fallback={<div className="min-h-[60vh]" />}>
+      <CartContent />
+    </Suspense>
   );
 }
