@@ -1,11 +1,11 @@
-import { getToken } from "next-auth/jwt";
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { NextResponse } from "next/server";
 
-export default async function proxy(req: NextRequest) {
+export default auth((req) => {
   const { nextUrl } = req;
+  const session = req.auth;
+  const isLoggedIn = !!session;
 
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const isLoggedIn = !!token;
   const isAdminRoute = nextUrl.pathname.startsWith("/admin");
   const isProtectedRoute =
     nextUrl.pathname.startsWith("/profile") ||
@@ -15,7 +15,7 @@ export default async function proxy(req: NextRequest) {
     nextUrl.pathname.startsWith("/subscription");
 
   if (isAdminRoute) {
-    if (!isLoggedIn || token?.role !== "ADMIN") {
+    if (!isLoggedIn || session?.user?.role !== "ADMIN") {
       return NextResponse.redirect(new URL("/login", nextUrl));
     }
   }
@@ -26,7 +26,7 @@ export default async function proxy(req: NextRequest) {
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
