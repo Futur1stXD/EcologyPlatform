@@ -1,8 +1,16 @@
+// Allow Supabase's intermediate TLS certificate chain in all environments
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+  const pool = new Pool({
+    connectionString: process.env.POSTGRES_PRISMA_URL!,
+    ssl: { rejectUnauthorized: false },
+  });
+  const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 }
 

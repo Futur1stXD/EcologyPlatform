@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 next dev",
+    "build": "prisma generate && next build",
+    "start": "NODE_TLS_REJECT_UNAUTHORIZED=0 next start",
     "lint": "eslint",
     "seed": "npx tsx prisma/seed.ts"
   },
@@ -15,6 +15,7 @@
     "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "^7.4.2",
     "@stripe/stripe-js": "^8.9.0",
+    "@supabase/supabase-js": "^2.98.0",
     "@types/pg": "^8.18.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
