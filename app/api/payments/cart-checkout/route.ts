@@ -37,6 +37,10 @@ export async function POST(req: NextRequest) {
   const productMap = new Map(products.map((p) => [p.id, p]));
   const lineItems = items.map((item) => {
     const product = productMap.get(item.productId)!;
+    // Only pass valid HTTPS image URLs to Stripe
+    const stripeImages = product.images
+      .filter((url) => url.startsWith("https://"))
+      .slice(0, 1);
     return {
       quantity: item.quantity,
       price_data: {
@@ -44,7 +48,7 @@ export async function POST(req: NextRequest) {
         unit_amount: Math.round(product.price * 100),
         product_data: {
           name: product.title,
-          images: product.images.length ? [product.images[0]] : [],
+          images: stripeImages,
         },
       },
     };

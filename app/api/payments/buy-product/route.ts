@@ -20,6 +20,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Нельзя купить собственный товар" }, { status: 400 });
 
   try {
+    // Only pass valid HTTPS image URLs to Stripe (relative paths cause session creation to fail)
+    const stripeImages = product.images
+      .filter((url) => url.startsWith("https://"))
+      .slice(0, 1);
+
     const checkout = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -31,7 +36,7 @@ export async function POST(req: NextRequest) {
             unit_amount: Math.round(product.price * 100),
             product_data: {
               name: product.title,
-              images: product.images.length ? [product.images[0]] : [],
+              images: stripeImages,
             },
           },
         },
