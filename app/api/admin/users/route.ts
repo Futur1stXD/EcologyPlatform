@@ -1,7 +1,14 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { AdminUsersTable } from "@/components/admin/AdminUsersTable";
 
-export default async function AdminUsersPage() {
+// GET /api/admin/users — list all users
+export async function GET(req: NextRequest) {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const users = await prisma.user.findMany({
     select: {
       id: true,
@@ -17,10 +24,5 @@ export default async function AdminUsersPage() {
     take: 200,
   });
 
-  return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold text-[#0a0a0a] mb-6">Users ({users.length})</h1>
-      <AdminUsersTable users={users} />
-    </div>
-  );
+  return NextResponse.json(users);
 }

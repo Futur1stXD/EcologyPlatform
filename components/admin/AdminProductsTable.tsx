@@ -27,6 +27,19 @@ export function AdminProductsTable({ products: initial }: AdminProductsTableProp
   const [products, setProducts] = useState(initial);
   const [loading, setLoading] = useState<string | null>(null);
 
+  const deleteProduct = async (id: string) => {
+    if (!confirm("Delete this product? This cannot be undone.")) return;
+    setLoading(id);
+    const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      toast.success("Product deleted", "The listing has been removed");
+    } else {
+      toast.error("Delete failed", "Could not delete the product");
+    }
+    setLoading(null);
+  };
+
   const moderate = async (id: string, status: "APPROVED" | "REJECTED") => {
     setLoading(id);
     const res = await fetch(`/api/admin/products/${id}`, {
@@ -147,6 +160,15 @@ export function AdminProductsTable({ products: initial }: AdminProductsTableProp
                   >
                     ↗
                   </a>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    loading={loading === p.id}
+                    onClick={() => deleteProduct(p.id)}
+                  >
+                    🗑
+                  </Button>
                 </div>
               </td>
             </tr>

@@ -12,6 +12,7 @@ import { ReviewForm } from "@/components/products/ReviewForm";
 import { BuyButton } from "@/components/products/BuyButton";
 import { AddToCartButton } from "@/components/products/AddToCartButton";
 import { ImageGallery } from "@/components/products/ImageGallery";
+import { DeleteProductButton } from "@/components/products/DeleteProductButton";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -47,6 +48,8 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
   const isPremium = product.seller.subscription?.plan === "PREMIUM";
   const canReview = session && session.user.id !== product.sellerId;
   const hasReviewed = product.reviews.some((r: { userId: string }) => r.userId === session?.user?.id);
+  const isOwner = session?.user?.id === product.sellerId;
+  const isAdmin = session?.user?.role === "ADMIN";
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10">
@@ -100,12 +103,15 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
                 isSeller={false}
               />
             )}
-            {session?.user?.id === product.sellerId && (
+            {isOwner && (
               <Link href={`/products/${product.id}/edit`}>
                 <Button variant="outline" className="w-full flex items-center gap-2">
                   <Pencil size={15} /> Edit product
                 </Button>
               </Link>
+            )}
+            {(isOwner || isAdmin) && (
+              <DeleteProductButton productId={product.id} />
             )}
           </div>
           <div className="border border-[#e5e5e5] rounded-xl p-4 mb-5">

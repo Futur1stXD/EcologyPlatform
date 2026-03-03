@@ -60,6 +60,7 @@ model User {
   balance         Float     @default(0)
   cashbackBalance Float     @default(0)
   cashbackEarned  Float     @default(0)
+  banned          Boolean   @default(false)
   createdAt       DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
