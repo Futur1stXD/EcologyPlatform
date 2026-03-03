@@ -10,10 +10,15 @@ export async function POST(req: NextRequest) {
   const { sessionId } = await req.json() as { sessionId: string };
   if (!sessionId) return NextResponse.json({ error: "sessionId required" }, { status: 400 });
 
-  // Verify with Stripe that the payment completed
+  // Verify with Stripe that the session is complete
   const stripeSession = await stripe.checkout.sessions.retrieve(sessionId);
-  if (stripeSession.payment_status !== "paid" && stripeSession.status !== "complete") {
-    return NextResponse.json({ error: "Payment not completed" }, { status: 402 });
+
+  // For subscription mode: status=complete is the reliable signal
+  if (stripeSession.status !== "complete") {
+    return NextResponse.json(
+      { error: `Payment not completed (status: ${stripeSession.status})` },
+      { status: 402 }
+    );
   }
 
   const userId = stripeSession.metadata?.userId;

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
@@ -25,7 +25,6 @@ export default function SubscriptionPage() {
 function SubscriptionContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [apiMessage, setApiMessage] = useState("");
@@ -67,11 +66,16 @@ function SubscriptionContent() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sessionId }),
     }).then(async (res) => {
+      const data = await res.json();
       if (res.ok) {
-        // Remove session_id from URL, refresh stats
-        router.replace("/subscription?success=true");
-        fetchStats();
+        // Hard reload so stats re-fetch from DB without any React state race
+        window.location.replace("/subscription?success=true");
+      } else {
+        console.error("[verify-subscription]", data);
+        setApiMessage(data.error ?? "Activation error. Please reload the page.");
       }
+    }).catch(() => {
+      setApiMessage("Network error. Please reload the page.");
     });
   }, [searchParams, session]); // eslint-disable-line react-hooks/exhaustive-deps
 
