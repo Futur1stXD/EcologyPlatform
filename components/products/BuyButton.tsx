@@ -19,13 +19,21 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
   const [loadingStripe, setLoadingStripe] = useState(false);
   const [loadingBalance, setLoadingBalance] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
-  const cashback = Math.round(price * 0.05 * 100) / 100;
+  const [cashbackBalance, setCashbackBalance] = useState<number>(0);
+  const [useCashback, setUseCashback] = useState(false);
+  const cashbackEarned = Math.round(price * 0.05 * 100) / 100;
+
+  const cashbackApplied = useCashback ? Math.min(cashbackBalance, price) : 0;
+  const effectivePrice = Math.round((price - cashbackApplied) * 100) / 100;
 
   useEffect(() => {
     if (!session) return;
     fetch("/api/payments/balance")
       .then((r) => r.json())
-      .then((d) => { if (typeof d.balance === "number") setBalance(d.balance); })
+      .then((d) => {
+        if (typeof d.balance === "number") setBalance(d.balance);
+        if (typeof d.cashbackBalance === "number") setCashbackBalance(d.cashbackBalance);
+      })
       .catch(() => {});
   }, [session]);
 
@@ -81,14 +89,17 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
       const res = await fetch("/api/payments/buy-with-balance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId }),
+        body: JSON.stringify({ productId, useCashback }),
       });
       const data = await res.json();
       if (!res.ok) {
         toast.error("Purchase failed", data.error ?? "Could not complete purchase");
         return;
       }
-      toast.success("Purchase successful!", `+${cashback.toLocaleString("ru-KZ")} ₸ cashback added to your balance`);
+      const msg = data.cashbackApplied > 0
+        ? `Saved ${data.cashbackApplied.toLocaleString("ru-KZ")} ₸ with cashback · +${data.cashback.toLocaleString("ru-KZ")} ₸ new cashback`
+        : `+${data.cashback.toLocaleString("ru-KZ")} ₸ cashback added`;
+      toast.success("Purchase successful!", msg);
       router.push(`/products/${productId}?purchased=true`);
       router.refresh();
     } catch {
@@ -98,7 +109,7 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
     }
   };
 
-  const hasSufficientBalance = balance !== null && balance >= price;
+  const hasSufficientBalance = balance !== null && balance >= effectivePrice;
 
   return (
     <div className="space-y-2">
@@ -114,26 +125,53 @@ export function BuyButton({ productId, price, isSeller, purchased }: BuyButtonPr
 
       {/* Balance button — shown only to signed-in users */}
       {session && (
-        <button
-          onClick={handleBuyBalance}
-          disabled={loadingBalance || loadingStripe || !hasSufficientBalance}
-          title={!hasSufficientBalance ? "Top up your balance in Profile" : undefined}
-          className="w-full flex items-center justify-center gap-2 rounded-xl border border-[#e0e0e0] bg-white text-[#0a0a0a] font-medium px-5 py-3.5 hover:bg-[#f5f5f5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loadingBalance ? <Loader2 size={16} className="animate-spin" /> : <Wallet size={16} />}
-          {loadingBalance
-            ? "Processing..."
-            : balance === null
-            ? "Pay with Balance"
-            : hasSufficientBalance
-            ? `Pay with Balance (₸${balance.toLocaleString("ru-KZ")})`
-            : `Insufficient balance (₸${(balance ?? 0).toLocaleString("ru-KZ")})`}
-        </button>
+        <>
+          {/* Cashback toggle */}
+          {cashbackBalance > 0 && (
+            <label className="flex items-center gap-2 cursor-pointer px-1 py-1">
+              <input
+                type="checkbox"
+                checked={useCashback}
+                onChange={(e) => setUseCashback(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 accent-green-600"
+              />
+              <span className="text-sm text-[#0a0a0a]">
+                Use cashback{" "}
+                <span className="font-semibold text-green-600">
+                  {cashbackBalance.toLocaleString("ru-KZ")} ₸
+                </span>
+                {useCashback && cashbackApplied > 0 && (
+                  <span className="text-[#6b6b6b]">
+                    {" "}→ saves {cashbackApplied.toLocaleString("ru-KZ")} ₸
+                  </span>
+                )}
+              </span>
+            </label>
+          )}
+
+          <button
+            onClick={handleBuyBalance}
+            disabled={loadingBalance || loadingStripe || !hasSufficientBalance}
+            title={!hasSufficientBalance ? "Top up your balance in Profile" : undefined}
+            className="w-full flex items-center justify-center gap-2 rounded-xl border border-[#e0e0e0] bg-white text-[#0a0a0a] font-medium px-5 py-3.5 hover:bg-[#f5f5f5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loadingBalance ? <Loader2 size={16} className="animate-spin" /> : <Wallet size={16} />}
+            {loadingBalance
+              ? "Processing..."
+              : balance === null
+              ? "Pay with Balance"
+              : hasSufficientBalance
+              ? useCashback && cashbackApplied > 0
+                ? `Pay ${effectivePrice.toLocaleString("ru-KZ")} ₸ (Balance)`
+                : `Pay with Balance (₸${balance.toLocaleString("ru-KZ")})`
+              : `Insufficient balance (₸${(balance ?? 0).toLocaleString("ru-KZ")})`}
+          </button>
+        </>
       )}
 
       {/* Cashback note */}
       <p className="text-xs text-center text-[#6b6b6b]">
-        🎁 +{cashback.toLocaleString("ru-KZ")} ₸ cashback (5%) on any payment
+        🎁 +{cashbackEarned.toLocaleString("ru-KZ")} ₸ cashback (5%) on any payment
       </p>
 
       {!session && (

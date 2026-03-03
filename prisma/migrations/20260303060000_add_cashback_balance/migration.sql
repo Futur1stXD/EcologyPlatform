@@ -1,0 +1,5 @@
+-- AlterEnum
+ALTER TYPE "BalanceTxType" ADD VALUE 'CASHBACK_SPEND';
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN "cashbackBalance" DOUBLE PRECISION NOT NULL DEFAULT 0;

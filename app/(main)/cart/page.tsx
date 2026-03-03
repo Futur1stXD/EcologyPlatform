@@ -17,6 +17,8 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false);
   const [loadingBalance, setLoadingBalance] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
+  const [cashbackBalance, setCashbackBalance] = useState<number>(0);
+  const [useCashback, setUseCashback] = useState(false);
   const [error, setError] = useState("");
   const [verified, setVerified] = useState(false);
   const searchParams = useSearchParams();
@@ -28,7 +30,10 @@ export default function CartPage() {
     if (!session) return;
     fetch("/api/payments/balance")
       .then((r) => r.json())
-      .then((d) => { if (typeof d.balance === "number") setBalance(d.balance); })
+      .then((d) => {
+        if (typeof d.balance === "number") setBalance(d.balance);
+        if (typeof d.cashbackBalance === "number") setCashbackBalance(d.cashbackBalance);
+      })
       .catch(() => {});
   }, [session]);
 
@@ -83,17 +88,22 @@ export default function CartPage() {
       const res = await fetch("/api/payments/cart-balance-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })) }),
+        body: JSON.stringify({
+          items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+          useCashback,
+        }),
       });
-      const data = await res.json() as { orderId?: string; error?: string };
+      const data = await res.json() as { orderId?: string; cashback?: number; cashbackApplied?: number; error?: string };
       if (!res.ok) {
         const msg = data.error ?? "Checkout error";
         setError(msg);
         toast.error("Purchase failed", msg);
         return;
       }
-      const cashback = Math.round(totalPrice() * 0.05 * 100) / 100;
-      toast.success("Order placed!", `+${cashback.toLocaleString("ru-KZ")} ₸ cashback added to your balance`);
+      const cashbackMsg = data.cashbackApplied && data.cashbackApplied > 0
+        ? `Saved ${data.cashbackApplied.toLocaleString("ru-KZ")} ₸ with cashback · +${(data.cashback ?? 0).toLocaleString("ru-KZ")} ₸ new cashback`
+        : `+${(data.cashback ?? 0).toLocaleString("ru-KZ")} ₸ cashback added`;
+      toast.success("Order placed!", cashbackMsg);
       clearCart();
       router.push("/cart?success=true");
     } finally {
@@ -265,18 +275,47 @@ export default function CartPage() {
                       }`}>{formatPrice(balance)}</span>
                     </div>
                   )}
+
+                  {/* Cashback toggle */}
+                  {cashbackBalance > 0 && (
+                    <label className="mt-2 flex items-center gap-2 cursor-pointer text-sm px-1">
+                      <input
+                        type="checkbox"
+                        checked={useCashback}
+                        onChange={(e) => setUseCashback(e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300 accent-green-600"
+                      />
+                      <span className="text-[#0a0a0a]">
+                        Use cashback{" "}
+                        <span className="font-semibold text-green-600">
+                          {cashbackBalance.toLocaleString("ru-KZ")} ₸
+                        </span>
+                        {useCashback && (
+                          <span className="text-[#6b6b6b]">
+                            {" "}→ saves {Math.min(cashbackBalance, totalPrice()).toLocaleString("ru-KZ")} ₸
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                  )}
+
+                  {useCashback && cashbackBalance > 0 && (
+                    <div className="mt-2 flex justify-between text-sm font-bold text-green-700">
+                      <span>To pay</span>
+                      <span>{formatPrice(Math.max(0, totalPrice() - Math.min(cashbackBalance, totalPrice())))}</span>
+                    </div>
+                  )}
+
                   <button
                     onClick={handleBalanceCheckout}
-                    disabled={loadingBalance || loading || balance === null || balance < totalPrice()}
+                    disabled={loadingBalance || loading || balance === null || balance < Math.max(0, totalPrice() - (useCashback ? Math.min(cashbackBalance, totalPrice()) : 0))}
                     title={balance !== null && balance < totalPrice() ? "Top up your balance in Profile" : undefined}
                     className="mt-2 w-full flex items-center justify-center gap-2 rounded-xl border border-[#e0e0e0] bg-white text-[#0a0a0a] font-medium px-5 py-3 text-sm hover:bg-[#f5f5f5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Wallet size={15} />
                     {loadingBalance
                       ? "Processing..."
-                      : balance === null || balance >= totalPrice()
-                      ? "Pay with Balance"
-                      : `Insufficient balance`}
+                      : "Pay with Balance"}
                   </button>
                   <p className="mt-2 text-xs text-center text-[#6b6b6b]">
                     🎁 +{(Math.round(totalPrice() * 0.05 * 100) / 100).toLocaleString("ru-KZ")} ₸ cashback (5%) on any payment

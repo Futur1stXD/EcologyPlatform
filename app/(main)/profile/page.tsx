@@ -30,6 +30,7 @@ export default async function ProfilePage() {
       bio: true,
       ecoPoints: true,
       balance: true,
+      cashbackBalance: true,
       cashbackEarned: true,
       createdAt: true,
       subscription: { select: { plan: true, currentPeriodEnd: true } },
@@ -178,7 +179,7 @@ export default async function ProfilePage() {
       </div>
 
       {/* Balance & Cashback */}
-      <BalanceTopupWidget balance={user.balance} cashbackEarned={user.cashbackEarned} />
+      <BalanceTopupWidget balance={user.balance} cashbackBalance={user.cashbackBalance} cashbackEarned={user.cashbackEarned} />
 
       {/* Subscription billing history */}
       {isPremium && <SubscriptionBilling />}

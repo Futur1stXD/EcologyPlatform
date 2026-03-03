@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { items } = await req.json() as { items: CartItemInput[] };
+  const { items, useCashback } = await req.json() as { items: CartItemInput[]; useCashback?: boolean };
   if (!items?.length) return NextResponse.json({ error: "Empty cart" }, { status: 400 });
 
   const productIds = items.map((i) => i.productId);
@@ -35,29 +35,41 @@ export async function POST(req: NextRequest) {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { balance: true },
+    select: { balance: true, cashbackBalance: true },
   });
 
-  if (!user || user.balance < totalPrice)
+  // Calculate cashback discount applied
+  const cashbackApplied = useCashback && user && user.cashbackBalance > 0
+    ? Math.min(user.cashbackBalance, totalPrice)
+    : 0;
+  const cashbackAppliedRounded = Math.round(cashbackApplied * 100) / 100;
+  const effectivePrice = Math.round((totalPrice - cashbackAppliedRounded) * 100) / 100;
+
+  if (!user || user.balance < effectivePrice)
     return NextResponse.json({ error: "Insufficient balance" }, { status: 402 });
 
-  const cashback = Math.round(totalPrice * 0.05 * 100) / 100;
+  const cashbackEarned = Math.round(totalPrice * 0.05 * 100) / 100;
 
   const order = await prisma.$transaction(async (tx) => {
-    await tx.user.update({
-      where: { id: session.user.id },
-      data: {
-        balance: { decrement: totalPrice },
-        cashbackEarned: { increment: cashback },
-      },
-    });
+    const userUpdate: Record<string, unknown> = {
+      balance: { decrement: effectivePrice },
+      cashbackEarned: { increment: cashbackEarned },
+      cashbackBalance: { increment: cashbackEarned },
+    };
+    if (cashbackAppliedRounded > 0) {
+      userUpdate.cashbackBalance = {
+        increment: cashbackEarned - cashbackAppliedRounded,
+      };
+    }
+
+    await tx.user.update({ where: { id: session.user.id }, data: userUpdate });
 
     const o = await tx.order.create({
       data: {
         userId: session.user.id,
         totalPrice,
         paymentMethod: "BALANCE",
-        cashbackAmount: cashback,
+        cashbackAmount: cashbackEarned,
         items: {
           create: items.map((item) => ({
             productId: item.productId,
@@ -71,22 +83,31 @@ export async function POST(req: NextRequest) {
     await tx.balanceTransaction.create({
       data: {
         userId: session.user.id,
-        amount: -totalPrice,
+        amount: -effectivePrice,
         type: "PURCHASE",
-        description: `Cart purchase (${items.length} item${items.length > 1 ? "s" : ""})`,
+        description: cashbackAppliedRounded > 0
+          ? `Cart purchase (${items.length} item${items.length > 1 ? "s" : ""}) — ${cashbackAppliedRounded.toLocaleString("ru-KZ")} ₸ cashback applied`
+          : `Cart purchase (${items.length} item${items.length > 1 ? "s" : ""})`,
         orderId: o.id,
       },
     });
 
-    await tx.user.update({
-      where: { id: session.user.id },
-      data: { balance: { increment: cashback } },
-    });
+    if (cashbackAppliedRounded > 0) {
+      await tx.balanceTransaction.create({
+        data: {
+          userId: session.user.id,
+          amount: -cashbackAppliedRounded,
+          type: "CASHBACK_SPEND",
+          description: `Cashback spent on cart purchase`,
+          orderId: o.id,
+        },
+      });
+    }
 
     await tx.balanceTransaction.create({
       data: {
         userId: session.user.id,
-        amount: cashback,
+        amount: cashbackEarned,
         type: "CASHBACK",
         description: `5% cashback on cart purchase`,
         orderId: o.id,
@@ -99,5 +120,5 @@ export async function POST(req: NextRequest) {
   const ordersCount = await prisma.order.count({ where: { userId: session.user.id } });
   await rewardPurchase(session.user.id, ordersCount);
 
-  return NextResponse.json({ ok: true, orderId: order.id, cashback });
+  return NextResponse.json({ ok: true, orderId: order.id, cashback: cashbackEarned, cashbackApplied: cashbackAppliedRounded });
 }

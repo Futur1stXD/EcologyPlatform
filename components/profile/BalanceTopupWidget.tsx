@@ -8,10 +8,11 @@ const AMOUNTS = [500, 1000, 2000, 5000, 10000];
 
 interface Props {
   balance: number;
+  cashbackBalance: number;
   cashbackEarned: number;
 }
 
-export function BalanceTopupWidget({ balance, cashbackEarned }: Props) {
+export function BalanceTopupWidget({ balance, cashbackBalance, cashbackEarned }: Props) {
   const [selected, setSelected] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -45,16 +46,22 @@ export function BalanceTopupWidget({ balance, cashbackEarned }: Props) {
         <h2 className="text-base font-semibold text-[#0a0a0a]">Balance & Cashback</h2>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
         <div className="rounded-xl bg-[#f5f5f5] px-4 py-3">
-          <p className="text-xs text-[#6b6b6b] mb-0.5">Current balance</p>
+          <p className="text-xs text-[#6b6b6b] mb-0.5">Balance</p>
           <p className="text-xl font-bold text-[#0a0a0a]">
             {balance.toLocaleString("ru-KZ")} ₸
           </p>
         </div>
         <div className="rounded-xl bg-green-50 border border-green-100 px-4 py-3">
-          <p className="text-xs text-[#6b6b6b] mb-0.5">Total cashback earned</p>
+          <p className="text-xs text-[#6b6b6b] mb-0.5">Cashback to spend</p>
           <p className="text-xl font-bold text-green-600">
+            {cashbackBalance.toLocaleString("ru-KZ")} ₸
+          </p>
+        </div>
+        <div className="rounded-xl bg-[#f5f5f5] px-4 py-3">
+          <p className="text-xs text-[#6b6b6b] mb-0.5">Total earned</p>
+          <p className="text-xl font-bold text-[#6b6b6b]">
             +{cashbackEarned.toLocaleString("ru-KZ")} ₸
           </p>
         </div>
@@ -88,7 +95,7 @@ export function BalanceTopupWidget({ balance, cashbackEarned }: Props) {
       </button>
 
       <p className="mt-3 text-xs text-[#a3a3a3]">
-        🎁 Every purchase earns 5% cashback credited to your balance
+        🎁 Every purchase earns 5% cashback — apply it as a discount at checkout
       </p>
     </div>
   );
