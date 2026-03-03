@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EcoScoreBadge } from "@/components/products/EcoScoreBadge";
 import { BalanceTopupWidget } from "@/components/profile/BalanceTopupWidget";
+import { SubscriptionBilling } from "@/components/profile/SubscriptionBilling";
 
 // Always read fresh data — subscription/balance change after Stripe redirects
 export const dynamic = "force-dynamic";
@@ -178,6 +179,9 @@ export default async function ProfilePage() {
 
       {/* Balance & Cashback */}
       <BalanceTopupWidget balance={user.balance} cashbackEarned={user.cashbackEarned} />
+
+      {/* Subscription billing history */}
+      {isPremium && <SubscriptionBilling />}
 
       {/* Badges */}
       {user.badges.length > 0 && (
