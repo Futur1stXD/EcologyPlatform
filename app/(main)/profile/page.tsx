@@ -16,6 +16,8 @@ export default async function ProfilePage() {
     select: {
       id: true,
       name: true,
+      lastName: true,
+      dateOfBirth: true,
       email: true,
       role: true,
       bio: true,
@@ -25,20 +27,23 @@ export default async function ProfilePage() {
       badges: { orderBy: { awardedAt: "desc" } },
       products: {
         orderBy: { createdAt: "desc" },
-        take: 10,
+        take: 20,
         select: { id: true, title: true, price: true, status: true, ecoScore: true, createdAt: true },
       },
       orders: {
         orderBy: { createdAt: "desc" },
         take: 5,
-        select: { id: true, totalPrice: true, createdAt: true, items: { select: { quantity: true, product: { select: { title: true } } } } },
+        select: {
+          id: true,
+          totalPrice: true,
+          createdAt: true,
+          items: { select: { quantity: true, product: { select: { title: true } } } },
+        },
       },
     },
   });
 
   if (!user) redirect("/login");
-
-  const isSeller = user.role === "SELLER" || user.role === "ADMIN";
 
   const BADGE_LABELS: Record<string, string> = {
     GREEN_BUYER: "🌿 Green Buyer",
@@ -48,21 +53,33 @@ export default async function ProfilePage() {
     HUNDRED_POINTS: "💯 100 Points",
   };
 
+  const roleLabel =
+    user.role === "ADMIN" ? "Admin" : user.role === "SELLER" ? "Seller" : "Member";
+
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 py-10">
       {/* Profile header */}
       <div className="border border-[#e5e5e5] rounded-2xl p-6 mb-6">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-full bg-[#0a0a0a] text-white text-xl font-bold flex items-center justify-center">
+            <div className="h-14 w-14 rounded-full bg-[#0a0a0a] text-white text-xl font-bold flex items-center justify-center shrink-0">
               {user.name?.[0]?.toUpperCase() ?? "U"}
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[#0a0a0a]">{user.name}</h1>
+              <h1 className="text-xl font-bold text-[#0a0a0a]">
+                {[user.name, user.lastName].filter(Boolean).join(" ")}
+              </h1>
               <p className="text-sm text-[#6b6b6b]">{user.email}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline">{user.role === "SELLER" ? "Seller" : user.role === "ADMIN" ? "Admin" : "Buyer"}</Badge>
-                {user.subscription?.plan === "PREMIUM" && <Badge variant="default">⭐ Premium</Badge>}
+              {user.dateOfBirth && (
+                <p className="text-xs text-[#a3a3a3] mt-0.5">
+                  Born: {formatDate(user.dateOfBirth)}
+                </p>
+              )}
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <Badge variant="outline">{roleLabel}</Badge>
+                {user.subscription?.plan === "PREMIUM" && (
+                  <Badge variant="default">⭐ Premium</Badge>
+                )}
               </div>
             </div>
           </div>
@@ -75,18 +92,19 @@ export default async function ProfilePage() {
         {user.bio && <p className="text-sm text-[#6b6b6b] mt-4">{user.bio}</p>}
 
         <div className="flex flex-wrap gap-2 mt-4">
-          {isSeller && (
-            <Link href="/products/new">
-              <Button size="sm" variant="outline">+ Add product</Button>
-            </Link>
-          )}
-          {user.subscription?.plan !== "PREMIUM" && isSeller && (
+          <Link href="/products/new">
+            <Button size="sm" variant="outline">+ Add product</Button>
+          </Link>
+          <Link href="/profile/settings">
+            <Button size="sm" variant="outline">⚙️ Settings</Button>
+          </Link>
+          {user.subscription?.plan !== "PREMIUM" && (
             <Link href="/subscription">
               <Button size="sm" variant="secondary">Get Premium</Button>
             </Link>
           )}
           <Link href="/rewards">
-            <Button size="sm" variant="secondary">Мои награды</Button>
+            <Button size="sm" variant="secondary">🏆 My Rewards</Button>
           </Link>
         </div>
       </div>
@@ -97,7 +115,10 @@ export default async function ProfilePage() {
           <h2 className="text-base font-semibold text-[#0a0a0a] mb-4">Achievements</h2>
           <div className="flex flex-wrap gap-2">
             {user.badges.map((b: { badge: string }) => (
-              <span key={b.badge} className="rounded-full border border-[#e5e5e5] px-3 py-1 text-sm text-[#0a0a0a]">
+              <span
+                key={b.badge}
+                className="rounded-full border border-[#e5e5e5] px-3 py-1 text-sm text-[#0a0a0a]"
+              >
                 {BADGE_LABELS[b.badge] ?? b.badge}
               </span>
             ))}
@@ -105,29 +126,58 @@ export default async function ProfilePage() {
         </div>
       )}
 
-      {/* Products (seller) */}
-      {isSeller && user.products.length > 0 && (
+      {/* My products — visible to ALL users */}
+      {user.products.length > 0 ? (
         <div className="border border-[#e5e5e5] rounded-2xl p-6 mb-6">
-          <h2 className="text-base font-semibold text-[#0a0a0a] mb-4">My products</h2>
-          <div className="space-y-3">
-            {user.products.map((p: { id: string; title: string; price: number; status: string; ecoScore: number; createdAt: Date }) => (
-              <div key={p.id} className="flex items-center justify-between gap-3 py-2 border-b border-[#e5e5e5] last:border-0">
-                <div>
-                  <p className="text-sm font-medium text-[#0a0a0a]">{p.title}</p>
-                  <p className="text-xs text-[#6b6b6b]">{formatDate(p.createdAt)} · {formatPrice(p.price)}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <EcoScoreBadge score={p.ecoScore} compact />
-                  <Badge variant={p.status === "APPROVED" ? "green" : p.status === "REJECTED" ? "red" : "yellow"}>
-                    {p.status === "APPROVED" ? "Published" : p.status === "REJECTED" ? "Rejected" : "Under review"}
-                  </Badge>
-                  <Link href={`/products/${p.id}`} className="text-xs text-[#6b6b6b] hover:text-[#0a0a0a]">
-                    Открыть
-                  </Link>
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-[#0a0a0a]">My products</h2>
+            <Link href="/products/new">
+              <Button size="sm" variant="outline">+ New</Button>
+            </Link>
           </div>
+          <div className="space-y-3">
+            {user.products.map(
+              (p: { id: string; title: string; price: number; status: string; ecoScore: number; createdAt: Date }) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between gap-3 py-2 border-b border-[#e5e5e5] last:border-0"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-[#0a0a0a] truncate">{p.title}</p>
+                    <p className="text-xs text-[#6b6b6b]">
+                      {formatDate(p.createdAt)} · {formatPrice(p.price)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <EcoScoreBadge score={p.ecoScore} compact />
+                    <Badge
+                      variant={
+                        p.status === "APPROVED" ? "green" : p.status === "REJECTED" ? "red" : "yellow"
+                      }
+                    >
+                      {p.status === "APPROVED" ? "Published" : p.status === "REJECTED" ? "Rejected" : "Under review"}
+                    </Badge>
+                    <Link
+                      href={`/products/${p.id}/edit`}
+                      className="text-xs text-[#6b6b6b] hover:text-[#0a0a0a] border border-[#e5e5e5] rounded-lg px-2 py-0.5"
+                    >
+                      Edit
+                    </Link>
+                    <Link href={`/products/${p.id}`} className="text-xs text-[#6b6b6b] hover:text-[#0a0a0a]">
+                      View
+                    </Link>
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="border border-dashed border-[#e5e5e5] rounded-2xl p-6 mb-6 text-center">
+          <p className="text-sm text-[#6b6b6b] mb-3">You have no listings yet.</p>
+          <Link href="/products/new">
+            <Button size="sm">+ Add your first product</Button>
+          </Link>
         </div>
       )}
 
@@ -136,18 +186,20 @@ export default async function ProfilePage() {
         <div className="border border-[#e5e5e5] rounded-2xl p-6">
           <h2 className="text-base font-semibold text-[#0a0a0a] mb-4">Order history</h2>
           <div className="space-y-3">
-            {user.orders.map((o: { id: string; totalPrice: number; createdAt: Date; items: { quantity: number; product: { title: string } }[] }) => (
-              <div key={o.id} className="py-2 border-b border-[#e5e5e5] last:border-0">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-sm font-medium text-[#0a0a0a]">Order #{o.id.slice(-6)}</p>
-                  <p className="text-sm font-semibold text-[#0a0a0a]">{formatPrice(o.totalPrice)}</p>
+            {user.orders.map(
+              (o: { id: string; totalPrice: number; createdAt: Date; items: { quantity: number; product: { title: string } }[] }) => (
+                <div key={o.id} className="py-2 border-b border-[#e5e5e5] last:border-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-sm font-medium text-[#0a0a0a]">Order #{o.id.slice(-6)}</p>
+                    <p className="text-sm font-semibold text-[#0a0a0a]">{formatPrice(o.totalPrice)}</p>
+                  </div>
+                  <p className="text-xs text-[#6b6b6b]">
+                    {o.items.map((i) => `${i.product.title} × ${i.quantity}`).join(", ")}
+                  </p>
+                  <p className="text-xs text-[#a3a3a3] mt-1">{formatDate(o.createdAt)}</p>
                 </div>
-                <p className="text-xs text-[#6b6b6b]">
-                  {o.items.map((i: { quantity: number; product: { title: string } }) => `${i.product.title} × ${i.quantity}`).join(", ")}
-                </p>
-                <p className="text-xs text-[#a3a3a3] mt-1">{formatDate(o.createdAt)}</p>
-              </div>
-            ))}
+              )
+            )}
           </div>
         </div>
       )}

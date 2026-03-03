@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 import { randomUUID } from "crypto";
 import { auth } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase";
+
+const BUCKET = "uploads";
+
+async function ensureBucket() {
+  const { data: buckets } = await supabaseAdmin.storage.listBuckets();
+  if (!buckets?.find((b) => b.name === BUCKET)) {
+    await supabaseAdmin.storage.createBucket(BUCKET, { public: true });
+  }
+}
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -17,8 +25,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ urls: [] });
   }
 
-  const uploadDir = join(process.cwd(), "public", "uploads");
-  await mkdir(uploadDir, { recursive: true });
+  await ensureBucket();
 
   const urls: string[] = [];
 
@@ -29,8 +36,18 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
     const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
     const filename = `${randomUUID()}.${ext}`;
-    await writeFile(join(uploadDir, filename), buffer);
-    urls.push(`/uploads/${filename}`);
+
+    const { error } = await supabaseAdmin.storage
+      .from(BUCKET)
+      .upload(filename, buffer, { contentType: file.type, upsert: false });
+
+    if (error) {
+      console.error("Supabase upload error:", error.message);
+      continue;
+    }
+
+    const { data } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(filename);
+    urls.push(data.publicUrl);
   }
 
   return NextResponse.json({ urls });
