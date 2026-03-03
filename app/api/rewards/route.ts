@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getBadgeInfo } from "@/lib/gamification";
+import { BadgeType } from "@prisma/client";
 
 export async function GET() {
   const session = await auth();
@@ -20,7 +21,7 @@ export async function GET() {
 
   const badges = user.badges.map((b: { badge: string; awardedAt: Date }) => ({
     ...b,
-    info: getBadgeInfo(b.badge),
+    info: getBadgeInfo(b.badge as BadgeType),
   }));
 
   return NextResponse.json({ ecoPoints: user.ecoPoints, badges, ordersCount: user._count.orders });
