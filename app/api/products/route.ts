@@ -67,9 +67,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!["SELLER", "ADMIN"].includes(session.user.role)) {
-    return NextResponse.json({ error: "Только продавцы могут добавлять товары" }, { status: 403 });
-  }
+
 
   try {
     const body = await req.json();

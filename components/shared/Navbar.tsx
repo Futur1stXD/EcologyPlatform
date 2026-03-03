@@ -48,13 +48,11 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {session ? (
               <>
-                {(session.user.role === "SELLER" || session.user.role === "ADMIN") && (
-                  <Link href="/products/new">
-                    <Button variant="outline" size="sm">
-                      + Добавить товар
-                    </Button>
-                  </Link>
-                )}
+                <Link href="/products/new">
+                  <Button variant="outline" size="sm">
+                    + Добавить товар
+                  </Button>
+                </Link>
                 <Link href="/profile">
                   <button className="h-8 w-8 rounded-full bg-[#0a0a0a] text-white text-xs font-medium flex items-center justify-center">
                     {session.user.name?.[0]?.toUpperCase() ?? "U"}
@@ -102,6 +100,9 @@ export function Navbar() {
               <>
                 <Link href="/profile" className="text-sm text-[#0a0a0a] py-1" onClick={() => setMobileOpen(false)}>
                   Профиль
+                </Link>
+                <Link href="/products/new" className="text-sm text-[#0a0a0a] py-1" onClick={() => setMobileOpen(false)}>
+                  + Добавить товар
                 </Link>
                 <button
                   className="text-sm text-left text-red-600 py-1"

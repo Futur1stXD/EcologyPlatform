@@ -9,13 +9,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
 
 const schema = z.object({
   name: z.string().min(2, "Минимум 2 символа"),
   email: z.string().email("Введите корректный email"),
   password: z.string().min(6, "Минимум 6 символов"),
-  role: z.enum(["USER", "SELLER"]),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -28,7 +26,7 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { role: "USER" } });
+  } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   const onSubmit = async (data: FormData) => {
     setServerError("");
@@ -78,15 +76,6 @@ export default function RegisterPage() {
           placeholder="Минимум 6 символов"
           error={errors.password?.message}
           {...register("password")}
-        />
-        <Select
-          id="role"
-          label="Я хочу"
-          options={[
-            { value: "USER", label: "Покупать eco-товары" },
-            { value: "SELLER", label: "Продавать eco-товары" },
-          ]}
-          {...register("role")}
         />
 
         {serverError && (
