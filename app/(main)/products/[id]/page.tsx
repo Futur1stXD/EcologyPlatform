@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { Star, MapPin, Package, Pencil } from "lucide-react";
 import { prisma } from "@/lib/prisma";
@@ -12,6 +11,7 @@ import { ContactSellerButton } from "@/components/products/ContactSellerButton";
 import { ReviewForm } from "@/components/products/ReviewForm";
 import { BuyButton } from "@/components/products/BuyButton";
 import { AddToCartButton } from "@/components/products/AddToCartButton";
+import { ImageGallery } from "@/components/products/ImageGallery";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -52,24 +52,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Images */}
-        <div className="space-y-3">
-          <div className="relative aspect-square rounded-2xl overflow-hidden bg-[#f5f5f5]">
-            {product.images[0] ? (
-              <Image src={product.images[0]} alt={product.title} fill className="object-cover" />
-            ) : (
-              <div className="flex items-center justify-center h-full text-[#a3a3a3]">Нет фото</div>
-            )}
-          </div>
-          {product.images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
-              {product.images.slice(1).map((img: string, i: number) => (
-                <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-[#f5f5f5]">
-                  <Image src={img} alt={`${product.title} ${i + 2}`} fill className="object-cover" />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <ImageGallery images={product.images} title={product.title} />
 
         {/* Details */}
         <div>

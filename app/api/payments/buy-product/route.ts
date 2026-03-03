@@ -27,7 +27,6 @@ export async function POST(req: NextRequest) {
 
     const checkout = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card"],
       line_items: [
         {
           quantity: 1,
@@ -51,7 +50,8 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json({ url: checkout.url });
   } catch (err) {
-    console.error("[buy-product]:", err);
-    return NextResponse.json({ error: "Stripe unavailable. Please try again later." }, { status: 502 });
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    console.error("[buy-product]:", msg);
+    return NextResponse.json({ error: msg }, { status: 502 });
   }
 }
