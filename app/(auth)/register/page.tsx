@@ -23,6 +23,7 @@ const schema = z.object({
     .regex(/[a-z]/, "Must contain a lowercase letter")
     .regex(/[0-9]/, "Must contain a number")
     .regex(/[^A-Za-z0-9]/, "Must contain a special character"),
+  role: z.enum(["USER", "SELLER"]).default("USER"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -30,15 +31,22 @@ type FormData = z.infer<typeof schema>;
 export default function RegisterPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState("");
+  const [selectedRole, setSelectedRole] = useState<"USER" | "SELLER">("USER");
 
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  } = useForm<FormData>({ resolver: zodResolver(schema), defaultValues: { role: "USER" } });
 
   const passwordValue = watch("password", "");
+
+  const handleRoleSelect = (role: "USER" | "SELLER") => {
+    setSelectedRole(role);
+    setValue("role", role);
+  };
 
   const onSubmit = async (data: FormData) => {
     setServerError("");
@@ -66,6 +74,40 @@ export default function RegisterPage() {
       <p className="text-sm text-[#6b6b6b] mb-6">Join EcoMarket</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        {/* Role selector */}
+        <div>
+          <p className="text-sm font-medium text-[#0a0a0a] mb-2">I want to</p>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => handleRoleSelect("USER")}
+              className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-colors ${
+                selectedRole === "USER"
+                  ? "border-[#0a0a0a] bg-[#f5f5f5] text-[#0a0a0a]"
+                  : "border-[#e5e5e5] bg-white text-[#6b6b6b] hover:border-[#c0c0c0]"
+              }`}
+            >
+              <span className="text-xl">🛒</span>
+              <span>Buy products</span>
+              <span className="text-xs font-normal text-[#a3a3a3]">Buyer</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRoleSelect("SELLER")}
+              className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-colors ${
+                selectedRole === "SELLER"
+                  ? "border-[#0a0a0a] bg-[#f5f5f5] text-[#0a0a0a]"
+                  : "border-[#e5e5e5] bg-white text-[#6b6b6b] hover:border-[#c0c0c0]"
+              }`}
+            >
+              <span className="text-xl">🌿</span>
+              <span>Sell eco-products</span>
+              <span className="text-xs font-normal text-[#a3a3a3]">Seller</span>
+            </button>
+          </div>
+          <input type="hidden" {...register("role")} />
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <Input
             id="name"

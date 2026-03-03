@@ -9,6 +9,19 @@ const BADGE_CRITERIA = {
   [BadgeType.HUNDRED_POINTS]: { label: "100 Points", points: 0 },
 };
 
+// 1 eco-point per 100 ₸ topped up
+export const ECO_POINTS_PER_100_KZT = 1;
+
+/** Award eco-points for a balance top-up (1 pt per 100 ₸) */
+export async function rewardTopup(userId: string, amount: number) {
+  const pointsToAdd = Math.floor(amount / 100);
+  if (pointsToAdd <= 0) return;
+  await prisma.user.update({
+    where: { id: userId },
+    data: { ecoPoints: { increment: pointsToAdd } },
+  });
+}
+
 export function getBadgeInfo(badge: BadgeType) {
   return BADGE_CRITERIA[badge];
 }

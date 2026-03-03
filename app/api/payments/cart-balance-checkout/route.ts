@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { items, useCashback } = await req.json() as { items: CartItemInput[]; useCashback?: boolean };
+  const { items, useCashback, useEcoPoints } = await req.json() as { items: CartItemInput[]; useCashback?: boolean; useEcoPoints?: boolean };
   if (!items?.length) return NextResponse.json({ error: "Empty cart" }, { status: 400 });
 
   const productIds = items.map((i) => i.productId);
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { balance: true, cashbackBalance: true },
+    select: { balance: true, cashbackBalance: true, ecoPoints: true },
   });
 
   // Calculate cashback discount applied
@@ -43,7 +43,15 @@ export async function POST(req: NextRequest) {
     ? Math.min(user.cashbackBalance, totalPrice)
     : 0;
   const cashbackAppliedRounded = Math.round(cashbackApplied * 100) / 100;
-  const effectivePrice = Math.round((totalPrice - cashbackAppliedRounded) * 100) / 100;
+
+  // Calculate eco-points discount (1 point = 1 ₸), applied after cashback
+  const priceAfterCashback = Math.round((totalPrice - cashbackAppliedRounded) * 100) / 100;
+  const ecoPointsApplied = useEcoPoints && user && user.ecoPoints > 0
+    ? Math.min(user.ecoPoints, priceAfterCashback)
+    : 0;
+  const ecoPointsAppliedRounded = Math.round(ecoPointsApplied * 100) / 100;
+
+  const effectivePrice = Math.round((priceAfterCashback - ecoPointsAppliedRounded) * 100) / 100;
 
   if (!user || user.balance < effectivePrice)
     return NextResponse.json({ error: "Insufficient balance" }, { status: 402 });

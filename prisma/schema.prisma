@@ -37,6 +37,7 @@ enum BalanceTxType {
   CASHBACK
   CASHBACK_SPEND
   REFUND
+  ECO_SPEND
 }
 
 enum PaymentMethod {

@@ -65,7 +65,7 @@ export default async function ProfilePage() {
   };
 
   const roleLabel =
-    user.role === "ADMIN" ? "Admin" : user.role === "SELLER" ? "Seller" : "Member";
+    user.role === "ADMIN" ? "⚙️ Admin" : user.role === "SELLER" ? "🌿 Seller" : "🛒 Buyer";
 
   const plan = user.subscription?.plan ?? "FREE";
   const isPremium = plan === "PREMIUM";
