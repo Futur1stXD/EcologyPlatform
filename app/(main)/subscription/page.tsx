@@ -1,26 +1,90 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { CheckCircle, XCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
+interface ListingStats {
+  productCount: number;
+  plan: string;
+  limit: number | null;
+  remaining: number | null;
+  currentPeriodEnd: string | null;
+}
+
 export default function SubscriptionPage() {
+  return (
+    <Suspense>
+      <SubscriptionContent />
+    </Suspense>
+  );
+}
+
+function SubscriptionContent() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [apiMessage, setApiMessage] = useState("");
+  const [stats, setStats] = useState<ListingStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  const paramMessage = useMemo(() => {
+    if (searchParams.get("success") === "true") return "✅ Subscription activated! Thank you.";
+    if (searchParams.get("canceled") === "true") return "Payment cancelled.";
+    return "";
+  }, [searchParams]);
+
+  const message = apiMessage || paramMessage;
+  // statsLoading only relevant when session exists
+  const isLoadingStats = statsLoading && !!session;
+
+  useEffect(() => {
+    if (!session) return;
+    fetch("/api/profile/listing-stats")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        setStats(data);
+        setStatsLoading(false);
+      });
+  }, [session]);
 
   const subscribe = async () => {
     setLoading(true);
+    setApiMessage("");
     const res = await fetch("/api/payments/create-checkout", { method: "POST" });
     if (res.ok) {
       const { url } = await res.json();
       window.location.href = url;
     } else {
-      setMessage("Ошибка. Попробуйте позже.");
+      setApiMessage("Error. Please try again later.");
     }
     setLoading(false);
   };
+
+  const manageSubscription = async () => {
+    setPortalLoading(true);
+    setApiMessage("");
+    const res = await fetch("/api/payments/portal", { method: "POST" });
+    if (res.ok) {
+      const { url } = await res.json();
+      window.location.href = url;
+    } else {
+      setApiMessage("Could not open billing portal. Please try again.");
+    }
+    setPortalLoading(false);
+  };
+
+  const isPremium = stats?.plan === "PREMIUM";
+  const periodEnd = stats?.currentPeriodEnd
+    ? new Date(stats.currentPeriodEnd).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
 
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 py-16">
@@ -29,14 +93,61 @@ export default function SubscriptionPage() {
         <p className="text-[#6b6b6b] max-w-lg mx-auto">
           Expand your reach and get tools to grow your eco-product sales.
         </p>
+        {isPremium && periodEnd && (
+          <p className="mt-3 text-sm text-green-700 bg-green-50 inline-block px-4 py-1.5 rounded-full border border-green-200">
+            ⭐ Your Premium plan is active · Renews {periodEnd}
+          </p>
+        )}
       </div>
+
+      {message && (
+        <p className={`text-center text-sm mb-6 ${message.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>
+          {message}
+        </p>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
         {/* Free */}
-        <div className="border border-[#e5e5e5] rounded-2xl p-6">
+        <div className={`border rounded-2xl p-6 relative ${!isPremium && session ? "border-2 border-[#0a0a0a]" : "border-[#e5e5e5]"}`}>
+          {!isPremium && session && (
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a0a] text-white text-xs px-3 py-1 rounded-full">
+              Current plan
+            </div>
+          )}
           <p className="text-xs font-medium text-[#a3a3a3] uppercase tracking-wide mb-3">Free</p>
           <p className="text-3xl font-bold text-[#0a0a0a] mb-1">₸0</p>
           <p className="text-sm text-[#6b6b6b] mb-6">/ month</p>
+
+          {/* Listing counter for FREE users */}
+          {session && !isPremium && !isLoadingStats && stats && (
+            <div className="mb-5 bg-[#fafafa] rounded-xl border border-[#e5e5e5] px-3 py-2.5">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-[#6b6b6b]">Listings used</span>
+                <span className="text-xs font-bold text-[#0a0a0a]">
+                  {stats.productCount}/{stats.limit}
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-[#e5e5e5] rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${
+                    (stats.remaining ?? 1) <= 0
+                      ? "bg-red-500"
+                      : (stats.remaining ?? 99) <= 2
+                      ? "bg-yellow-400"
+                      : "bg-green-500"
+                  }`}
+                  style={{
+                    width: `${Math.min(100, Math.round(((stats.productCount) / (stats.limit ?? 10)) * 100))}%`,
+                  }}
+                />
+              </div>
+              <p className="text-xs text-[#6b6b6b] mt-1">
+                {(stats.remaining ?? 0) <= 0
+                  ? "Limit reached — upgrade to add more"
+                  : `${stats.remaining} listing${stats.remaining === 1 ? "" : "s"} remaining`}
+              </p>
+            </div>
+          )}
 
           <ul className="space-y-2 mb-6">
             {[
@@ -59,15 +170,21 @@ export default function SubscriptionPage() {
           </ul>
 
           <Button variant="outline" className="w-full" disabled>
-            Current plan
+            {isPremium || !session ? "Free plan" : "Current plan"}
           </Button>
         </div>
 
         {/* Premium */}
-        <div className="border-2 border-[#0a0a0a] rounded-2xl p-6 relative">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a0a] text-white text-xs px-3 py-1 rounded-full">
-            Popular
-          </div>
+        <div className={`border-2 rounded-2xl p-6 relative ${isPremium ? "border-green-500" : "border-[#0a0a0a]"}`}>
+          {isPremium ? (
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs px-3 py-1 rounded-full">
+              ✓ Your plan
+            </div>
+          ) : (
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0a0a0a] text-white text-xs px-3 py-1 rounded-full">
+              Popular
+            </div>
+          )}
 
           <p className="text-xs font-medium text-[#a3a3a3] uppercase tracking-wide mb-3">Premium</p>
           <p className="text-3xl font-bold text-[#0a0a0a] mb-1">₸9 990</p>
@@ -89,7 +206,26 @@ export default function SubscriptionPage() {
             ))}
           </ul>
 
-          {session ? (
+          {isLoadingStats ? (
+            <Button className="w-full" disabled>
+              <Loader2 size={14} className="animate-spin mr-2" />
+              Loading...
+            </Button>
+          ) : isPremium ? (
+            <div className="space-y-2">
+              <Button
+                className="w-full"
+                variant="outline"
+                loading={portalLoading}
+                onClick={manageSubscription}
+              >
+                Manage subscription
+              </Button>
+              {periodEnd && (
+                <p className="text-xs text-center text-[#6b6b6b]">Renews {periodEnd}</p>
+              )}
+            </div>
+          ) : session ? (
             <Button className="w-full" loading={loading} onClick={subscribe}>
               Activate Premium
             </Button>
@@ -98,14 +234,18 @@ export default function SubscriptionPage() {
               Sign in to activate
             </Button>
           )}
-
-          {message && <p className="text-xs text-red-500 text-center mt-2">{message}</p>}
         </div>
       </div>
 
       <p className="text-center text-xs text-[#a3a3a3] mt-8">
-        Payment via Stripe. Cancel subscription at any time.
+        Payment via Stripe. Cancel subscription at any time.{" "}
+        {isPremium && (
+          <button onClick={manageSubscription} className="underline cursor-pointer">
+            Manage or cancel
+          </button>
+        )}
       </p>
     </div>
   );
 }
+

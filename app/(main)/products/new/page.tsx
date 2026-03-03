@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Upload, X, CheckCircle2 } from "lucide-react";
+import { Upload, X, CheckCircle2, AlertTriangle } from "lucide-react";
+import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
@@ -65,6 +66,20 @@ export default function NewProductPage() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [listingStats, setListingStats] = useState<{
+    productCount: number;
+    plan: string;
+    limit: number | null;
+    remaining: number | null;
+  } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/profile/listing-stats")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => data && setListingStats(data));
+  }, []);
+
+  const atLimit = listingStats !== null && listingStats.remaining !== null && listingStats.remaining <= 0;
 
   const {
     register,
@@ -161,7 +176,56 @@ export default function NewProductPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 sm:px-6 py-10">
       <h1 className="text-2xl font-bold text-[#0a0a0a] mb-2">Add product</h1>
-      <p className="text-sm text-[#6b6b6b] mb-8">The product will be published after admin review.</p>
+      <p className="text-sm text-[#6b6b6b] mb-4">The product will be published after admin review.</p>
+
+      {/* Listing counter banner */}
+      {listingStats && listingStats.plan === "FREE" && (
+        <div
+          className={`flex items-start gap-3 rounded-xl border px-4 py-3 mb-6 ${
+            atLimit
+              ? "border-red-200 bg-red-50"
+              : listingStats.remaining! <= 2
+              ? "border-yellow-200 bg-yellow-50"
+              : "border-green-200 bg-green-50"
+          }`}
+        >
+          {atLimit ? (
+            <AlertTriangle size={16} className="text-red-500 mt-0.5 shrink-0" />
+          ) : (
+            <CheckCircle2 size={16} className="text-green-600 mt-0.5 shrink-0" />
+          )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <p className={`text-xs font-semibold ${
+                atLimit ? "text-red-700" : "text-[#0a0a0a]"
+              }`}>
+                {atLimit
+                  ? "Listing limit reached"
+                  : `Free plan — ${listingStats.remaining} of ${listingStats.limit} listings remaining`}
+              </p>
+              <span className="text-xs font-bold text-[#0a0a0a] shrink-0">
+                {listingStats.productCount}/{listingStats.limit}
+              </span>
+            </div>
+            <div className="w-full h-1.5 bg-white/60 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full ${
+                  atLimit ? "bg-red-500" : listingStats.remaining! <= 2 ? "bg-yellow-400" : "bg-green-500"
+                }`}
+                style={{
+                  width: `${Math.min(100, Math.round((listingStats.productCount / listingStats.limit!) * 100))}%`,
+                }}
+              />
+            </div>
+            {atLimit && (
+              <p className="text-xs text-red-600 mt-1">
+                Upgrade to Premium for unlimited listings.{" "}
+                <Link href="/subscription" className="underline font-medium">Learn more</Link>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         <Input id="title" label="Product name *" placeholder="e.g. Bamboo toothbrush" error={errors.title?.message} {...register("title")} />
@@ -256,7 +320,7 @@ export default function NewProductPage() {
           <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{serverError}</p>
         )}
 
-        <Button type="submit" loading={isSubmitting} size="lg" className="w-full">
+        <Button type="submit" loading={isSubmitting} size="lg" className="w-full" disabled={atLimit}>
           Submit for review
         </Button>
       </form>

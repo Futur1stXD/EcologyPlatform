@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EcoScoreBadge } from "@/components/products/EcoScoreBadge";
 
+const FREE_PLAN_LIMIT = 10;
+
 export default async function ProfilePage() {
   const session = await auth();
   if (!session) redirect("/login");
@@ -25,6 +27,7 @@ export default async function ProfilePage() {
       createdAt: true,
       subscription: { select: { plan: true, currentPeriodEnd: true } },
       badges: { orderBy: { awardedAt: "desc" } },
+      _count: { select: { products: true } },
       products: {
         orderBy: { createdAt: "desc" },
         take: 20,
@@ -56,6 +59,11 @@ export default async function ProfilePage() {
   const roleLabel =
     user.role === "ADMIN" ? "Admin" : user.role === "SELLER" ? "Seller" : "Member";
 
+  const plan = user.subscription?.plan ?? "FREE";
+  const isPremium = plan === "PREMIUM";
+  const totalListings = user._count.products;
+  const usedPct = Math.min(100, Math.round((totalListings / FREE_PLAN_LIMIT) * 100));
+
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 py-10">
       {/* Profile header */}
@@ -77,8 +85,10 @@ export default async function ProfilePage() {
               )}
               <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <Badge variant="outline">{roleLabel}</Badge>
-                {user.subscription?.plan === "PREMIUM" && (
+                {isPremium ? (
                   <Badge variant="default">⭐ Premium</Badge>
+                ) : (
+                  <Badge variant="outline">Free plan</Badge>
                 )}
               </div>
             </div>
@@ -91,6 +101,52 @@ export default async function ProfilePage() {
 
         {user.bio && <p className="text-sm text-[#6b6b6b] mt-4">{user.bio}</p>}
 
+        {/* Plan info + listing counter */}
+        <div className="mt-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+          {isPremium ? (
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-[#0a0a0a] uppercase tracking-wide mb-0.5">
+                ⭐ Premium plan
+              </p>
+              <p className="text-xs text-[#6b6b6b]">
+                Unlimited listings ·{" "}
+                {user.subscription?.currentPeriodEnd
+                  ? `Valid until ${formatDate(user.subscription.currentPeriodEnd)}`
+                  : "Active"}
+              </p>
+            </div>
+          ) : (
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-semibold text-[#0a0a0a] uppercase tracking-wide">
+                  Free plan — listings
+                </p>
+                <p className="text-xs font-bold text-[#0a0a0a]">
+                  {totalListings}/{FREE_PLAN_LIMIT}
+                </p>
+              </div>
+              <div className="w-full h-1.5 bg-[#e5e5e5] rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    usedPct >= 100 ? "bg-red-500" : usedPct >= 70 ? "bg-yellow-400" : "bg-green-500"
+                  }`}
+                  style={{ width: `${usedPct}%` }}
+                />
+              </div>
+              <p className="text-xs text-[#6b6b6b] mt-1">
+                {totalListings >= FREE_PLAN_LIMIT
+                  ? "Limit reached — upgrade to add more"
+                  : `${FREE_PLAN_LIMIT - totalListings} listings remaining`}
+              </p>
+            </div>
+          )}
+          {!isPremium && (
+            <Link href="/subscription" className="shrink-0">
+              <Button size="sm">Upgrade to Premium</Button>
+            </Link>
+          )}
+        </div>
+
         <div className="flex flex-wrap gap-2 mt-4">
           <Link href="/products/new">
             <Button size="sm" variant="outline">+ Add product</Button>
@@ -98,7 +154,7 @@ export default async function ProfilePage() {
           <Link href="/profile/settings">
             <Button size="sm" variant="outline">⚙️ Settings</Button>
           </Link>
-          {user.subscription?.plan !== "PREMIUM" && (
+          {!isPremium && (
             <Link href="/subscription">
               <Button size="sm" variant="secondary">Get Premium</Button>
             </Link>
@@ -130,7 +186,17 @@ export default async function ProfilePage() {
       {user.products.length > 0 ? (
         <div className="border border-[#e5e5e5] rounded-2xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-[#0a0a0a]">My products</h2>
+            <div>
+              <h2 className="text-base font-semibold text-[#0a0a0a]">My products</h2>
+              {!isPremium && (
+                <p className="text-xs text-[#6b6b6b] mt-0.5">
+                  {totalListings}/{FREE_PLAN_LIMIT} listings used
+                  {totalListings >= FREE_PLAN_LIMIT && (
+                    <span className="ml-1 text-red-500 font-medium">· Limit reached</span>
+                  )}
+                </p>
+              )}
+            </div>
             <Link href="/products/new">
               <Button size="sm" variant="outline">+ New</Button>
             </Link>

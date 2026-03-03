@@ -63,15 +63,35 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ products, total, pages: Math.ceil(total / limit) });
 }
 
+const FREE_PLAN_LIMIT = 10;
+
 // POST /api/products — create
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-
   try {
     const body = await req.json();
     const data = productSchema.parse(body);
+
+    // Enforce free plan limit
+    const subscription = await prisma.subscription.findUnique({
+      where: { userId: session.user.id },
+      select: { plan: true },
+    });
+    const plan = subscription?.plan ?? "FREE";
+
+    if (plan === "FREE") {
+      const productCount = await prisma.product.count({
+        where: { sellerId: session.user.id },
+      });
+      if (productCount >= FREE_PLAN_LIMIT) {
+        return NextResponse.json(
+          { error: `Free plan limit reached (${FREE_PLAN_LIMIT} listings). Upgrade to Premium for unlimited listings.` },
+          { status: 403 }
+        );
+      }
+    }
 
     const product = await prisma.product.create({
       data: { ...data, sellerId: session.user.id, status: "PENDING" },
