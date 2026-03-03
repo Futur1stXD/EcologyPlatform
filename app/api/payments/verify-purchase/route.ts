@@ -32,18 +32,41 @@ export async function POST(req: NextRequest) {
   if (type === "product_purchase" && productId) {
     const product = await prisma.product.findUnique({
       where: { id: productId },
-      select: { price: true },
+      select: { price: true, title: true },
     });
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
+
+    const cashback = Math.round(product.price * 0.05 * 100) / 100;
 
     const order = await prisma.order.create({
       data: {
         userId,
         totalPrice: product.price,
         stripeSessionId: sessionId,
+        paymentMethod: "STRIPE",
+        cashbackAmount: cashback,
         items: { create: { productId, quantity: 1, price: product.price } },
       },
     });
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: {
+          balance: { increment: cashback },
+          cashbackEarned: { increment: cashback },
+        },
+      }),
+      prisma.balanceTransaction.create({
+        data: {
+          userId,
+          amount: cashback,
+          type: "CASHBACK",
+          description: `5% cashback on: ${product.title}`,
+          orderId: order.id,
+        },
+      }),
+    ]);
 
     const ordersCount = await prisma.order.count({ where: { userId } });
     await rewardPurchase(userId, ordersCount);
@@ -58,12 +81,15 @@ export async function POST(req: NextRequest) {
 
     const cartItems = JSON.parse(cartJson) as { productId: string; price: number; quantity: number }[];
     const totalPrice = stripeSession.amount_total ? stripeSession.amount_total / 100 : 0;
+    const cashback = Math.round(totalPrice * 0.05 * 100) / 100;
 
     const order = await prisma.order.create({
       data: {
         userId,
         totalPrice,
         stripeSessionId: sessionId,
+        paymentMethod: "STRIPE",
+        cashbackAmount: cashback,
         items: {
           create: cartItems.map((item) => ({
             productId: item.productId,
@@ -73,6 +99,25 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: {
+          balance: { increment: cashback },
+          cashbackEarned: { increment: cashback },
+        },
+      }),
+      prisma.balanceTransaction.create({
+        data: {
+          userId,
+          amount: cashback,
+          type: "CASHBACK",
+          description: "5% cashback on cart purchase",
+          orderId: order.id,
+        },
+      }),
+    ]);
 
     const ordersCount = await prisma.order.count({ where: { userId } });
     await rewardPurchase(userId, ordersCount);

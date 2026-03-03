@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
+import { toast } from "@/lib/store/toast";
 
 interface ReviewFormProps {
   productId: string;
@@ -19,8 +20,8 @@ export function ReviewForm({ productId }: ReviewFormProps) {
   const [error, setError] = useState("");
 
   const submit = async () => {
-    if (rating === 0) { setError("Please select a rating"); return; }
-    if (comment.trim().length < 3) { setError("Review is too short"); return; }
+    if (rating === 0) { toast.error("Please select a rating"); return; }
+    if (comment.trim().length < 3) { toast.error("Review is too short"); return; }
 
     setLoading(true);
     setError("");
@@ -32,10 +33,13 @@ export function ReviewForm({ productId }: ReviewFormProps) {
     });
 
     if (res.ok) {
+      toast.success("Review submitted", "Thank you for your feedback!");
       router.refresh();
     } else {
       const data = await res.json();
-      setError(data.error ?? "Failed to submit review");
+      const msg = data.error ?? "Failed to submit review";
+      setError(msg);
+      toast.error("Failed to submit review", msg);
     }
     setLoading(false);
   };

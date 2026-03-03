@@ -6,6 +6,7 @@ import { formatDate, formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EcoScoreBadge } from "@/components/products/EcoScoreBadge";
+import { BalanceTopupWidget } from "@/components/profile/BalanceTopupWidget";
 
 const FREE_PLAN_LIMIT = 10;
 
@@ -24,6 +25,8 @@ export default async function ProfilePage() {
       role: true,
       bio: true,
       ecoPoints: true,
+      balance: true,
+      cashbackEarned: true,
       createdAt: true,
       subscription: { select: { plan: true, currentPeriodEnd: true } },
       badges: { orderBy: { awardedAt: "desc" } },
@@ -164,6 +167,9 @@ export default async function ProfilePage() {
           </Link>
         </div>
       </div>
+
+      {/* Balance & Cashback */}
+      <BalanceTopupWidget balance={user.balance} cashbackEarned={user.cashbackEarned} />
 
       {/* Badges */}
       {user.badges.length > 0 && (

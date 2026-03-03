@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "@/lib/auth";
+import { Toaster } from "@/components/ui/Toaster";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +27,10 @@ export default async function RootLayout({
   return (
     <html lang="ru">
       <body className={`${geist.variable} antialiased bg-white text-[#0a0a0a]`}>
-        <SessionProvider session={session}>{children}</SessionProvider>
+        <SessionProvider session={session}>
+          {children}
+          <Toaster />
+        </SessionProvider>
       </body>
     </html>
   );

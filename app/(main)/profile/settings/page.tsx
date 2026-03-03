@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
+import { toast } from "@/lib/store/toast";
 
 type ProfileForm = {
   name: string;
@@ -22,9 +23,7 @@ type PasswordForm = {
 };
 
 export default function ProfileSettingsPage() {
-  const [profileSuccess, setProfileSuccess] = useState("");
   const [profileError, setProfileError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -61,25 +60,26 @@ export default function ProfileSettingsPage() {
 
   const onSaveProfile = async (data: ProfileForm) => {
     setProfileError("");
-    setProfileSuccess("");
     const res = await fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (res.ok) {
-      setProfileSuccess("Saved successfully!");
+      toast.success("Profile saved", "Your changes have been applied.");
     } else {
       const json = await res.json();
-      setProfileError(json.error ?? "Error saving");
+      const msg = json.error ?? "Error saving";
+      setProfileError(msg);
+      toast.error("Failed to save", msg);
     }
   };
 
   const onChangePassword = async (data: PasswordForm) => {
     setPasswordError("");
-    setPasswordSuccess("");
     if (data.newPassword !== data.confirmPassword) {
       setPasswordError("New passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
     const res = await fetch("/api/profile/password", {
@@ -91,11 +91,13 @@ export default function ProfileSettingsPage() {
       }),
     });
     if (res.ok) {
-      setPasswordSuccess("Password changed successfully!");
+      toast.success("Password changed", "You can now sign in with the new password.");
       resetPassword();
     } else {
       const json = await res.json();
-      setPasswordError(json.error ?? "Error changing password");
+      const msg = json.error ?? "Error changing password";
+      setPasswordError(msg);
+      toast.error("Failed to change password", msg);
     }
   };
 
@@ -157,11 +159,6 @@ export default function ProfileSettingsPage() {
             {profileError && (
               <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{profileError}</p>
             )}
-            {profileSuccess && (
-              <p className="text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg">
-                {profileSuccess}
-              </p>
-            )}
 
             <Button type="submit" loading={savingProfile} className="w-full">
               Save changes
@@ -199,11 +196,6 @@ export default function ProfileSettingsPage() {
 
           {passwordError && (
             <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">{passwordError}</p>
-          )}
-          {passwordSuccess && (
-            <p className="text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg">
-              {passwordSuccess}
-            </p>
           )}
 
           <Button type="submit" loading={savingPassword} className="w-full">

@@ -7,11 +7,21 @@ const productSchema = z.object({
   title: z.string().min(3),
   description: z.string().min(10),
   price: z.number().positive(),
-  images: z.array(z.string().url()).default([]),
+  images: z.array(z.string()).default([]),
   category: z.string(),
   materials: z.array(z.string()).default([]),
   origin: z.string(),
   ecoScore: z.number().min(1).max(100),
+  packagingType: z.string().optional().default(""),
+  hasRecycling: z.boolean().optional().default(false),
+  hasOrganicCert: z.boolean().optional().default(false),
+  isFairTrade: z.boolean().optional().default(false),
+  isVegan: z.boolean().optional().default(false),
+  isLocalDelivery: z.boolean().optional().default(false),
+  hasCarbonNeutral: z.boolean().optional().default(false),
+  hasEnergyEfficiency: z.boolean().optional().default(false),
+  hasZeroWaste: z.boolean().optional().default(false),
+  isDurable: z.boolean().optional().default(false),
 });
 
 // GET /api/products — list with filtering

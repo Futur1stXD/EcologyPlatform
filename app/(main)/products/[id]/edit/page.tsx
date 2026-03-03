@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { calculateEcoScore } from "@/lib/eco-score";
 import { EcoScoreBadge } from "@/components/products/EcoScoreBadge";
+import { toast } from "@/lib/store/toast";
 
 const schema = z.object({
   title: z.string().min(3, "Minimum 3 characters"),
@@ -104,7 +105,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         setExistingImages(p.images ?? []);
         setFetching(false);
       })
-      .catch(() => { setServerError("Failed to load product"); setFetching(false); });
+      .catch(() => {
+        setServerError("Failed to load product");
+        toast.error("Failed to load product");
+        setFetching(false);
+      });
   }, [id, reset]);
 
   const addFiles = (files: FileList | null) => {
@@ -157,7 +162,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       const fd = new FormData();
       newImageFiles.forEach((f) => fd.append("files", f));
       const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
-      if (!uploadRes.ok) { setServerError("Failed to upload photos"); return; }
+      if (!uploadRes.ok) {
+        setServerError("Failed to upload photos");
+        toast.error("Upload failed", "Could not upload the photos. Please try again.");
+        return;
+      }
       const { urls } = await uploadRes.json() as { urls: string[] };
       uploadedUrls = urls;
     }
@@ -189,10 +198,13 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
     if (!res.ok) {
       const body = await res.json();
-      setServerError(body.error ?? "Update error");
+      const msg = body.error ?? "Update error";
+      setServerError(msg);
+      toast.error("Failed to save", msg);
       return;
     }
 
+    toast.success("Product updated", "Your changes have been submitted for review.");
     router.push("/profile");
     router.refresh();
   };

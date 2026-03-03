@@ -2,22 +2,35 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { Trash2, Minus, Plus, ShoppingCart, Leaf, CheckCircle, ArrowLeft } from "lucide-react";
+import { Trash2, Minus, Plus, ShoppingCart, Leaf, CheckCircle, ArrowLeft, Wallet } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart";
 import { Button } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/utils";
+import { toast } from "@/lib/store/toast";
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, clearCart, totalPrice, totalItems } = useCartStore();
+  const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingBalance, setLoadingBalance] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [verified, setVerified] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!session) return;
+    fetch("/api/payments/balance")
+      .then((r) => r.json())
+      .then((d) => { if (typeof d.balance === "number") setBalance(d.balance); })
+      .catch(() => {});
+  }, [session]);
 
   // Verify purchase after Stripe redirect
   useEffect(() => {
@@ -48,10 +61,43 @@ export default function CartPage() {
         body: JSON.stringify({ items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })) }),
       });
       const data = await res.json() as { url?: string; error?: string };
-      if (!res.ok) { setError(data.error ?? "Ошибка"); return; }
-      if (data.url) window.location.href = data.url;
+      if (!res.ok) {
+        const msg = data.error ?? "Checkout error";
+        setError(msg);
+        toast.error("Checkout failed", msg);
+        return;
+      }
+      if (data.url) {
+        toast.info("Redirecting to payment…");
+        window.location.href = data.url;
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBalanceCheckout = async () => {
+    setError("");
+    setLoadingBalance(true);
+    try {
+      const res = await fetch("/api/payments/cart-balance-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })) }),
+      });
+      const data = await res.json() as { orderId?: string; error?: string };
+      if (!res.ok) {
+        const msg = data.error ?? "Checkout error";
+        setError(msg);
+        toast.error("Purchase failed", msg);
+        return;
+      }
+      const cashback = Math.round(totalPrice() * 0.05 * 100) / 100;
+      toast.success("Order placed!", `+${cashback.toLocaleString("ru-KZ")} ₸ cashback added to your balance`);
+      clearCart();
+      router.push("/cart?success=true");
+    } finally {
+      setLoadingBalance(false);
     }
   };
 
@@ -204,6 +250,39 @@ export default function CartPage() {
               >
                 Pay via Stripe
               </Button>
+
+              {/* Balance payment */}
+              {session && (
+                <>
+                  {balance !== null && (
+                    <div className="mt-3 flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-1.5 text-[#6b6b6b]">
+                        <Wallet size={14} />
+                        <span>Your balance</span>
+                      </div>
+                      <span className={`font-semibold ${
+                        balance >= totalPrice() ? "text-green-600" : "text-[#a3a3a3]"
+                      }`}>{formatPrice(balance)}</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={handleBalanceCheckout}
+                    disabled={loadingBalance || loading || balance === null || balance < totalPrice()}
+                    title={balance !== null && balance < totalPrice() ? "Top up your balance in Profile" : undefined}
+                    className="mt-2 w-full flex items-center justify-center gap-2 rounded-xl border border-[#e0e0e0] bg-white text-[#0a0a0a] font-medium px-5 py-3 text-sm hover:bg-[#f5f5f5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Wallet size={15} />
+                    {loadingBalance
+                      ? "Processing..."
+                      : balance === null || balance >= totalPrice()
+                      ? "Pay with Balance"
+                      : `Insufficient balance`}
+                  </button>
+                  <p className="mt-2 text-xs text-center text-[#6b6b6b]">
+                    🎁 +{(Math.round(totalPrice() * 0.05 * 100) / 100).toLocaleString("ru-KZ")} ₸ cashback (5%) on any payment
+                  </p>
+                </>
+              )}
 
               <div className="mt-4 flex items-start gap-2">
                 <Leaf size={14} className="text-green-500 shrink-0 mt-0.5" />

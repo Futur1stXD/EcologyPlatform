@@ -46,7 +46,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!isOwner && !isAdmin) return NextResponse.json({ error: "Доступ запрещён" }, { status: 403 });
 
   const body = await req.json();
-  const updated = await prisma.product.update({ where: { id }, data: body });
+
+  // Explicitly map only known Product fields to avoid Prisma unknown-field errors
+  const updateData: Record<string, unknown> = {};
+  const allowed = [
+    "title", "description", "price", "images", "category", "materials",
+    "origin", "ecoScore", "status", "isFeatured", "packagingType",
+    "hasRecycling", "hasOrganicCert", "isFairTrade", "isVegan",
+    "isLocalDelivery", "hasCarbonNeutral", "hasEnergyEfficiency",
+    "hasZeroWaste", "isDurable",
+  ];
+  for (const key of allowed) {
+    if (key in body) updateData[key] = body[key];
+  }
+
+  const updated = await prisma.product.update({ where: { id }, data: updateData });
   return NextResponse.json(updated);
 }
 

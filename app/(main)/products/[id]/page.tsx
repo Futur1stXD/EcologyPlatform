@@ -1,15 +1,17 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, MessageCircle, MapPin, Package } from "lucide-react";
+import { Star, MapPin, Package, Pencil } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { EcoScoreBadge } from "@/components/products/EcoScoreBadge";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { ContactSellerButton } from "@/components/products/ContactSellerButton";
 import { ReviewForm } from "@/components/products/ReviewForm";
 import { BuyButton } from "@/components/products/BuyButton";
+import { AddToCartButton } from "@/components/products/AddToCartButton";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -99,13 +101,29 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
           <p className="text-3xl font-bold text-[#0a0a0a] mb-5">{formatPrice(product.price)}</p>
 
           {/* Buy button */}
-          <div className="mb-5">
+          <div className="mb-5 space-y-2">
             <BuyButton
               productId={product.id}
               price={product.price}
               isSeller={session?.user?.id === product.sellerId}
               purchased={purchased === "true"}
             />
+            {session?.user?.id !== product.sellerId && (
+              <AddToCartButton
+                productId={product.id}
+                title={product.title}
+                price={product.price}
+                image={product.images[0] ?? ""}
+                isSeller={false}
+              />
+            )}
+            {session?.user?.id === product.sellerId && (
+              <Link href={`/products/${product.id}/edit`}>
+                <Button variant="outline" className="w-full flex items-center gap-2">
+                  <Pencil size={15} /> Edit product
+                </Button>
+              </Link>
+            )}
           </div>
           <div className="border border-[#e5e5e5] rounded-xl p-4 mb-5">
             <EcoScoreBadge score={product.ecoScore} showLabel />

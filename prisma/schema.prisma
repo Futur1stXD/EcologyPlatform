@@ -31,6 +31,18 @@ enum BadgeType {
   HUNDRED_POINTS
 }
 
+enum BalanceTxType {
+  TOPUP
+  PURCHASE
+  CASHBACK
+  REFUND
+}
+
+enum PaymentMethod {
+  STRIPE
+  BALANCE
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -43,19 +55,22 @@ model User {
   role          Role      @default(USER)
   bio           String?
   ecoPoints     Int       @default(0)
+  balance       Float     @default(0)
+  cashbackEarned Float    @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts          Account[]
-  sessions          Session[]
-  products          Product[]
-  reviews           Review[]
-  sentMessages      Message[]     @relation("SentMessages")
-  chatRoomsAsBuyer  ChatRoom[]    @relation("BuyerChats")
-  chatRoomsAsSeller ChatRoom[]    @relation("SellerChats")
-  subscription      Subscription?
-  badges            UserBadge[]
-  orders            Order[]
+  accounts             Account[]
+  sessions             Session[]
+  products             Product[]
+  reviews              Review[]
+  sentMessages         Message[]            @relation("SentMessages")
+  chatRoomsAsBuyer     ChatRoom[]           @relation("BuyerChats")
+  chatRoomsAsSeller    ChatRoom[]           @relation("SellerChats")
+  subscription         Subscription?
+  badges               UserBadge[]
+  orders               Order[]
+  balanceTransactions  BalanceTransaction[]
 }
 
 model Account {
@@ -86,20 +101,30 @@ model Session {
 }
 
 model Product {
-  id          String        @id @default(cuid())
-  title       String
-  description String
-  price       Float
-  images      String[]
-  category    String
-  materials   String[]
-  origin      String
-  ecoScore    Int
-  status      ProductStatus @default(PENDING)
-  isFeatured  Boolean       @default(false)
-  sellerId    String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id                 String        @id @default(cuid())
+  title              String
+  description        String
+  price              Float
+  images             String[]
+  category           String
+  materials          String[]
+  origin             String
+  ecoScore           Int
+  packagingType      String        @default("")
+  hasRecycling       Boolean       @default(false)
+  hasOrganicCert     Boolean       @default(false)
+  isFairTrade        Boolean       @default(false)
+  isVegan            Boolean       @default(false)
+  isLocalDelivery    Boolean       @default(false)
+  hasCarbonNeutral   Boolean       @default(false)
+  hasEnergyEfficiency Boolean      @default(false)
+  hasZeroWaste       Boolean       @default(false)
+  isDurable          Boolean       @default(false)
+  status             ProductStatus @default(PENDING)
+  isFeatured         Boolean       @default(false)
+  sellerId           String
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
   seller     User        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   reviews    Review[]
@@ -161,14 +186,17 @@ model Subscription {
 }
 
 model Order {
-  id              String      @id @default(cuid())
+  id              String        @id @default(cuid())
   userId          String
   totalPrice      Float
-  stripeSessionId String?     @unique
-  createdAt       DateTime    @default(now())
+  stripeSessionId String?       @unique
+  paymentMethod   PaymentMethod @default(STRIPE)
+  cashbackAmount  Float         @default(0)
+  createdAt       DateTime      @default(now())
 
   user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   items OrderItem[]
+  balanceTransactions BalanceTransaction[]
 }
 
 model OrderItem {
@@ -191,4 +219,17 @@ model UserBadge {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, badge])
+}
+
+model BalanceTransaction {
+  id          String         @id @default(cuid())
+  userId      String
+  amount      Float
+  type        BalanceTxType
+  description String
+  orderId     String?
+  createdAt   DateTime       @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
 }

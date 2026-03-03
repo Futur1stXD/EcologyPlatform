@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { toast } from "@/lib/store/toast";
 
 interface ContactSellerButtonProps {
   sellerId: string;
@@ -25,6 +26,8 @@ export function ContactSellerButton({ sellerId, productId }: ContactSellerButton
     if (res.ok) {
       const room = await res.json();
       router.push(`/chat/${room.id}`);
+    } else {
+      toast.error("Could not start chat", "Please try again.");
     }
     setLoading(false);
   };

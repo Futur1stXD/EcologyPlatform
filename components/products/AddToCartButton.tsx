@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ShoppingCart, Check } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart";
 import { Button } from "@/components/ui/Button";
+import { toast } from "@/lib/store/toast";
 
 interface Props {
   productId: string;
@@ -27,6 +28,7 @@ export function AddToCartButton({ productId, title, price, image, isSeller }: Pr
   const handleAdd = () => {
     addItem({ productId, title, price, image });
     setAdded(true);
+    toast.success("Added to cart", title);
     setTimeout(() => setAdded(false), 2000);
   };
 
