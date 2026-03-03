@@ -344,7 +344,6 @@ export default function CartPage() {
                 <p className="text-xs text-[#6b6b6b] leading-relaxed">
                   Badges are awarded for every purchase
                 </p>
-                </p>
               </div>
             </div>
           </div>
