@@ -9,13 +9,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 const schema = z.object({
   name: z.string().min(2, "Minimum 2 characters"),
   lastName: z.string().min(2, "Minimum 2 characters"),
   dateOfBirth: z.string().min(1, "Enter your date of birth"),
   email: z.string().email("Enter a valid email"),
-  password: z.string().min(6, "Minimum 6 characters"),
+  password: z
+    .string()
+    .min(8, "Minimum 8 characters")
+    .regex(/[A-Z]/, "Must contain an uppercase letter")
+    .regex(/[a-z]/, "Must contain a lowercase letter")
+    .regex(/[0-9]/, "Must contain a number")
+    .regex(/[^A-Za-z0-9]/, "Must contain a special character"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -27,8 +34,11 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+
+  const passwordValue = watch("password", "");
 
   const onSubmit = async (data: FormData) => {
     setServerError("");
@@ -87,11 +97,12 @@ export default function RegisterPage() {
           error={errors.email?.message}
           {...register("email")}
         />
-        <Input
+        <PasswordInput
           id="password"
-          type="password"
           label="Password"
-          placeholder="Minimum 6 characters"
+          placeholder="Minimum 8 characters"
+          showStrength
+          value={passwordValue}
           error={errors.password?.message}
           {...register("password")}
         />

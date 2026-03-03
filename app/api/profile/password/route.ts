@@ -6,7 +6,13 @@ import { prisma } from "@/lib/prisma";
 
 const schema = z.object({
   currentPassword: z.string().min(1),
-  newPassword: z.string().min(6, "New password must be at least 6 characters"),
+  newPassword: z
+    .string()
+    .min(8, "New password must be at least 8 characters")
+    .regex(/[A-Z]/, "Must contain an uppercase letter")
+    .regex(/[a-z]/, "Must contain a lowercase letter")
+    .regex(/[0-9]/, "Must contain a number")
+    .regex(/[^A-Za-z0-9]/, "Must contain a special character"),
 });
 
 export async function PATCH(req: NextRequest) {

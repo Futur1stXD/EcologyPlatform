@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { toast } from "@/lib/store/toast";
 
 type ProfileForm = {
@@ -38,6 +39,7 @@ export default function ProfileSettingsPage() {
     register: regPassword,
     handleSubmit: handlePassword,
     reset: resetPassword,
+    watch: watchPassword,
     formState: { isSubmitting: savingPassword },
   } = useForm<PasswordForm>();
 
@@ -80,6 +82,15 @@ export default function ProfileSettingsPage() {
     if (data.newPassword !== data.confirmPassword) {
       setPasswordError("New passwords do not match");
       toast.error("Passwords do not match");
+      return;
+    }
+    if (data.newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters");
+      return;
+    }
+    if (!/[A-Z]/.test(data.newPassword) || !/[a-z]/.test(data.newPassword) ||
+        !/[0-9]/.test(data.newPassword) || !/[^A-Za-z0-9]/.test(data.newPassword)) {
+      setPasswordError("Password is too weak — see requirements below");
       return;
     }
     const res = await fetch("/api/profile/password", {
@@ -179,18 +190,19 @@ export default function ProfileSettingsPage() {
             placeholder="••••••"
             {...regPassword("currentPassword")}
           />
-          <Input
+          <PasswordInput
             id="newPassword"
-            type="password"
             label="New password"
-            placeholder="••••••"
+            placeholder="Minimum 8 characters"
+            showStrength
+            value={watchPassword("newPassword", "")}
             {...regPassword("newPassword")}
           />
-          <Input
+          <PasswordInput
             id="confirmPassword"
-            type="password"
             label="Confirm new password"
             placeholder="••••••"
+            value={watchPassword("confirmPassword", "")}
             {...regPassword("confirmPassword")}
           />
 
