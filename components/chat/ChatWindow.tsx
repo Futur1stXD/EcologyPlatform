@@ -6,7 +6,7 @@ import { Send, CheckCheck } from "lucide-react";
 import type { MessageSummary } from "@/types";
 
 function formatTime(date: Date | string) {
-  return new Date(date).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  return new Date(date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 }
 
 function formatDateSeparator(date: Date | string) {
@@ -14,9 +14,9 @@ function formatDateSeparator(date: Date | string) {
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
-  if (d.toDateString() === today.toDateString()) return "Сегодня";
-  if (d.toDateString() === yesterday.toDateString()) return "Вчера";
-  return d.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+  if (d.toDateString() === today.toDateString()) return "Today";
+  if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return d.toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
 }
 
 function isSameDay(a: Date | string, b: Date | string) {
@@ -131,7 +131,7 @@ export function ChatWindow({ roomId, initialMessages, otherUser }: ChatWindowPro
           <div className={`flex flex-col ${isOwn ? "items-end" : "items-start"} max-w-[70%]`}>
             {showSenderInfo && (
               <span className="text-[11px] font-medium text-[#a3a3a3] mb-1 px-1">
-                {isOwn ? "Вы" : (otherUser.name ?? "Пользователь")}
+                {isOwn ? "You" : (otherUser.name ?? "User")}
               </span>
             )}
             <div
@@ -171,8 +171,8 @@ export function ChatWindow({ roomId, initialMessages, otherUser }: ChatWindowPro
           {otherUser.name?.[0]?.toUpperCase() ?? "?"}
         </div>
         <div>
-          <p className="text-sm font-semibold text-[#0a0a0a]">{otherUser.name ?? "Пользователь"}</p>
-          <p className="text-xs text-[#a3a3a3]">Участник чата</p>
+          <p className="text-sm font-semibold text-[#0a0a0a]">{otherUser.name ?? "User"}</p>
+          <p className="text-xs text-[#a3a3a3]">Chat member</p>
         </div>
       </div>
 
@@ -181,8 +181,8 @@ export function ChatWindow({ roomId, initialMessages, otherUser }: ChatWindowPro
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full gap-2">
             <div className="h-12 w-12 rounded-full bg-[#e5e5e5] flex items-center justify-center text-xl">💬</div>
-            <p className="text-sm font-medium text-[#0a0a0a]">Начните диалог</p>
-            <p className="text-xs text-[#a3a3a3]">Напишите первое сообщение</p>
+            <p className="text-sm font-medium text-[#0a0a0a]">Start a conversation</p>
+            <p className="text-xs text-[#a3a3a3]">Send the first message</p>
           </div>
         )}
         {renderMessages()}
@@ -196,7 +196,7 @@ export function ChatWindow({ roomId, initialMessages, otherUser }: ChatWindowPro
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Написать сообщение..."
+          placeholder="Write a message..."
           className="flex-1 h-10 rounded-xl border border-[#e5e5e5] bg-[#fafafa] px-3.5 text-sm outline-none focus:border-[#0a0a0a] focus:bg-white transition-colors"
         />
         <button

@@ -7,8 +7,8 @@ function formatLastTime(date: Date | string) {
   const d = new Date(date);
   const today = new Date();
   const isToday = d.toDateString() === today.toDateString();
-  if (isToday) return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-  return d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
+  if (isToday) return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" });
 }
 
 export default async function ChatListPage() {
@@ -36,12 +36,12 @@ export default async function ChatListPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 sm:px-6 py-10">
-      <h1 className="text-2xl font-bold text-[#0a0a0a] mb-6">Сообщения</h1>
+      <h1 className="text-2xl font-bold text-[#0a0a0a] mb-6">Messages</h1>
 
       {rooms.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-[#6b6b6b] text-sm mb-2">Нет активных диалогов</p>
-          <p className="text-xs text-[#a3a3a3]">Начните чат со страницы товара</p>
+          <p className="text-[#6b6b6b] text-sm mb-2">No active conversations</p>
+          <p className="text-xs text-[#a3a3a3]">Start a chat from a product page</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -85,10 +85,10 @@ export default async function ChatListPage() {
                   </div>
                   {lastMsg ? (
                     <p className={`text-sm truncate ${unread > 0 ? "text-[#0a0a0a] font-medium" : "text-[#6b6b6b]"}`}>
-                      {lastMsg.senderId === session.user.id ? "Вы: " : ""}{lastMsg.content}
+                      {lastMsg.senderId === session.user.id ? "You: " : ""}{lastMsg.content}
                     </p>
                   ) : (
-                    <p className="text-xs text-[#a3a3a3]">Нет сообщений</p>
+                    <p className="text-xs text-[#a3a3a3]">No messages</p>
                   )}
                 </div>
               </Link>
