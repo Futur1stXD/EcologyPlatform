@@ -9,6 +9,7 @@ import { EcoScoreBadge } from "@/components/products/EcoScoreBadge";
 import { Badge } from "@/components/ui/Badge";
 import { ContactSellerButton } from "@/components/products/ContactSellerButton";
 import { ReviewForm } from "@/components/products/ReviewForm";
+import { BuyButton } from "@/components/products/BuyButton";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,8 +17,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: product ? `${product.title} — EcoMarket` : "Товар" };
 }
 
-export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ProductPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ purchased?: string }> }) {
   const { id } = await params;
+  const { purchased } = await searchParams;
   const session = await auth();
 
   const product = await prisma.product.findUnique({
@@ -96,7 +98,15 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
           <p className="text-3xl font-bold text-[#0a0a0a] mb-5">{formatPrice(product.price)}</p>
 
-          {/* Eco-Score */}
+          {/* Buy button */}
+          <div className="mb-5">
+            <BuyButton
+              productId={product.id}
+              price={product.price}
+              isSeller={session?.user?.id === product.sellerId}
+              purchased={purchased === "true"}
+            />
+          </div>
           <div className="border border-[#e5e5e5] rounded-xl p-4 mb-5">
             <EcoScoreBadge score={product.ecoScore} showLabel />
           </div>

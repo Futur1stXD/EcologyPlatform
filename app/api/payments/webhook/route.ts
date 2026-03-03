@@ -20,8 +20,36 @@ export async function POST(req: NextRequest) {
       const userId = session.metadata?.userId;
       if (!userId) break;
 
-      const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+      // Product purchase (one-time payment)
+      if (session.metadata?.type === "product_purchase") {
+        const productId = session.metadata.productId;
+        if (!productId) break;
 
+        const product = await prisma.product.findUnique({
+          where: { id: productId },
+          select: { price: true },
+        });
+        if (!product) break;
+
+        await prisma.order.create({
+          data: {
+            userId,
+            totalPrice: product.price,
+            items: {
+              create: { productId, quantity: 1, price: product.price },
+            },
+          },
+        });
+
+        // Award eco-points for the purchase
+        const ordersCount = await prisma.order.count({ where: { userId } });
+        const { rewardPurchase } = await import("@/lib/gamification");
+        await rewardPurchase(userId, ordersCount);
+        break;
+      }
+
+      // Premium subscription
+      const sub = await stripe.subscriptions.retrieve(session.subscription as string);
       await prisma.subscription.upsert({
         where: { userId },
         update: {
