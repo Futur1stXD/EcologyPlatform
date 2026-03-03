@@ -85,6 +85,7 @@ export function Navbar() {
               )}
             </button>
             {session ? (
+              <>
                 {(session.user?.role === "SELLER" || session.user?.role === "ADMIN") && (
                   <Link href="/products/new">
                     <Button variant="outline" size="sm">
