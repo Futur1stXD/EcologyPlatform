@@ -179,10 +179,12 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       isDurable: !!data.isDurable,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { materialsRaw, ...rest } = data;
     const res = await fetch(`/api/products/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, materials, images, ecoScore, status: "PENDING" }),
+      body: JSON.stringify({ ...rest, materials, images, ecoScore, status: "PENDING" }),
     });
 
     if (!res.ok) {

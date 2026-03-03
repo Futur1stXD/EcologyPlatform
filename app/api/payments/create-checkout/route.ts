@@ -27,15 +27,19 @@ export async function POST() {
     });
   }
 
-  const checkout = await stripe.checkout.sessions.create({
-    customer: customerId,
-    mode: "subscription",
-    payment_method_types: ["card"],
-    line_items: [{ price: PREMIUM_PRICE_ID, quantity: 1 }],
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription?success=true`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription?canceled=true`,
-    metadata: { userId: session.user.id },
-  });
-
-  return NextResponse.json({ url: checkout.url });
+  try {
+    const checkout = await stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [{ price: PREMIUM_PRICE_ID, quantity: 1 }],
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription?canceled=true`,
+      metadata: { userId: session.user.id },
+    });
+    return NextResponse.json({ url: checkout.url });
+  } catch (err) {
+    console.error("[create-checkout]:", err);
+    return NextResponse.json({ error: "Stripe unavailable. Please try again later." }, { status: 502 });
+  }
 }

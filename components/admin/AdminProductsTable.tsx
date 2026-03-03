@@ -62,7 +62,7 @@ export function AdminProductsTable({ products: initial }: AdminProductsTableProp
             <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Price</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Status</th>
             <th className="text-left px-4 py-3 text-xs font-medium text-[#6b6b6b]">Date</th>
-            <th className="px-4 py-3 text-xs font-medium text-[#6b6b6b]">Actions</th>
+            <th className="text-right px-4 py-3 text-xs font-medium text-[#6b6b6b]">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-[#e5e5e5]">
@@ -86,7 +86,7 @@ export function AdminProductsTable({ products: initial }: AdminProductsTableProp
               </td>
               <td className="px-4 py-3 text-xs text-[#6b6b6b]">{formatDate(p.createdAt)}</td>
               <td className="px-4 py-3">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center justify-end gap-1.5">
                   {p.status === "PENDING" && (
                     <>
                       <Button

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { Send } from "lucide-react";
-import { formatDate } from "@/lib/utils";
+import { formatMessageTime } from "@/lib/utils";
 import type { MessageSummary } from "@/types";
 
 interface ChatWindowProps {
@@ -88,7 +88,7 @@ export function ChatWindow({ roomId, initialMessages, otherUser }: ChatWindowPro
               >
                 <p className="text-sm">{msg.content}</p>
                 <p className={`text-[10px] mt-1 ${isOwn ? "text-white/50" : "text-[#a3a3a3]"}`}>
-                  {formatDate(msg.createdAt)}
+                  {formatMessageTime(msg.createdAt)}
                 </p>
               </div>
             </div>

@@ -16,11 +16,15 @@ export async function POST() {
     return NextResponse.json({ error: "No Stripe customer found" }, { status: 404 });
   }
 
-  const portalSession = await stripe.billingPortal.sessions.create({
-    customer: subscription.stripeCustomerId,
-    return_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription`,
-    configuration: "bpc_1T6nicHElJ5m4A1pCebShYcj",
-  });
-
-  return NextResponse.json({ url: portalSession.url });
+  try {
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: subscription.stripeCustomerId,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription`,
+      configuration: "bpc_1T6nicHElJ5m4A1pCebShYcj",
+    });
+    return NextResponse.json({ url: portalSession.url });
+  } catch (err) {
+    console.error("[portal]:", err);
+    return NextResponse.json({ error: "Stripe unavailable. Please try again later." }, { status: 502 });
+  }
 }

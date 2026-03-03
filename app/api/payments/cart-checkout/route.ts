@@ -57,18 +57,22 @@ export async function POST(req: NextRequest) {
     price: productMap.get(item.productId)!.price,
   }));
 
-  const checkout = await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
-    line_items: lineItems,
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart?purchased=true&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart`,
-    metadata: {
-      userId: session.user.id,
-      type: "cart_purchase",
-      cartItems: JSON.stringify(cartItemsMeta),
-    },
-  });
-
-  return NextResponse.json({ url: checkout.url });
+  try {
+    const checkout = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: lineItems,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart?purchased=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart`,
+      metadata: {
+        userId: session.user.id,
+        type: "cart_purchase",
+        cartItems: JSON.stringify(cartItemsMeta),
+      },
+    });
+    return NextResponse.json({ url: checkout.url });
+  } catch (err) {
+    console.error("[cart-checkout]:", err);
+    return NextResponse.json({ error: "Stripe unavailable. Please try again later." }, { status: 502 });
+  }
 }

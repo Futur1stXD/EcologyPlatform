@@ -19,30 +19,34 @@ export async function POST(req: NextRequest) {
   if (product.sellerId === session.user.id)
     return NextResponse.json({ error: "Нельзя купить собственный товар" }, { status: 400 });
 
-  const checkout = await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "kzt",
-          unit_amount: Math.round(product.price * 100),
-          product_data: {
-            name: product.title,
-            images: product.images.length ? [product.images[0]] : [],
+  try {
+    const checkout = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "kzt",
+            unit_amount: Math.round(product.price * 100),
+            product_data: {
+              name: product.title,
+              images: product.images.length ? [product.images[0]] : [],
+            },
           },
         },
+      ],
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/products/${productId}?purchased=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/products/${productId}`,
+      metadata: {
+        userId: session.user.id,
+        productId: product.id,
+        type: "product_purchase",
       },
-    ],
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/products/${productId}?purchased=true&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/products/${productId}`,
-    metadata: {
-      userId: session.user.id,
-      productId: product.id,
-      type: "product_purchase",
-    },
-  });
-
-  return NextResponse.json({ url: checkout.url });
+    });
+    return NextResponse.json({ url: checkout.url });
+  } catch (err) {
+    console.error("[buy-product]:", err);
+    return NextResponse.json({ error: "Stripe unavailable. Please try again later." }, { status: 502 });
+  }
 }
