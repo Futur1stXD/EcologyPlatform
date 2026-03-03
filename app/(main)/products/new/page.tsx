@@ -185,7 +185,7 @@ export default function NewProductPage() {
     const res = await fetch("/api/products", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, materials, images, ecoScore }),
+      body: JSON.stringify({ ...data, materials, images, ecoScore, certificateUrl }),
     });
 
     if (!res.ok) {
